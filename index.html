@@ -358,27 +358,40 @@
 <!-- ── Start Overlay ── -->
 <div id="startOverlay" style="
   position:fixed; inset:0; z-index:9999;
-  background: linear-gradient(135deg, #fff0f5 0%, #ffc2e0 35%, #ff8ec8 65%, #ff5bb0 100%);
+  background: linear-gradient(135deg, #ff5bb0 0%, #ff8ec8 40%, #ffc2e0 70%, #fff0f5 100%);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:20px; transition: opacity 0.3s;
   font-family:'Nunito',sans-serif;
+  overflow:hidden;
 ">
-  <div style="font-size:clamp(4rem,20vw,7rem); line-height:1;">🐾</div>
-  <div style="font-family:'Fredoka One',cursive; font-size:clamp(1.6rem,6vw,2.4rem); color:#fff; text-shadow:0 3px 10px rgba(0,0,0,0.2);">Animal English</div>
-  <div id="startBtn" style="
-    background:rgba(255,255,255,0.9); border-radius:50px;
-    padding:16px 40px; font-size:clamp(1.1rem,4.5vw,1.4rem);
-    font-weight:900; color:#ff6b6b;
-    box-shadow:0 6px 24px rgba(255,91,176,0.4);
-    animation: pulse 1.4s ease-in-out infinite;
-    font-family:'Bubblegum Sans',cursive;
-    cursor:pointer; user-select:none;
-    -webkit-tap-highlight-color: transparent;
-  ">👆 Tap to Start!</div>
+  <!-- 대각선 배경 이미지 그리드 -->
+  <div id="bgGrid" style="position:absolute;inset:0;pointer-events:none;"></div>
+  <!-- 핑크 오버레이 -->
+  <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,91,176,0.55) 0%,rgba(255,142,200,0.45) 50%,rgba(255,240,245,0.4) 100%);pointer-events:none;"></div>
+
+  <!-- 전면 콘텐츠 -->
+  <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:20px;">
+    <div style="font-size:clamp(4rem,20vw,7rem); line-height:1;">🐾</div>
+    <div style="font-family:'Fredoka One',cursive; font-size:clamp(1.6rem,6vw,2.4rem); color:#fff; text-shadow:0 3px 10px rgba(0,0,0,0.25);">Animal English</div>
+    <div id="startBtn" style="
+      background:rgba(255,255,255,0.92); border-radius:50px;
+      padding:16px 40px; font-size:clamp(1.1rem,4.5vw,1.4rem);
+      font-weight:900; color:#ff5bb0;
+      box-shadow:0 6px 24px rgba(255,91,176,0.4);
+      animation: pulse 1.4s ease-in-out infinite;
+      font-family:'Bubblegum Sans',cursive;
+      cursor:pointer; user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    ">👆 Tap to Start!</div>
+  </div>
   <style>
     @keyframes pulse {
       0%,100% { transform:scale(1); box-shadow:0 6px 24px rgba(255,91,176,0.4); }
       50%      { transform:scale(1.06); box-shadow:0 10px 32px rgba(255,91,176,0.6); }
+    }
+    @keyframes cellIn {
+      from { opacity:0; transform:scale(0.6) rotate(var(--r)); }
+      to   { opacity:1; transform:scale(1)   rotate(var(--r)); }
     }
   </style>
 </div>
@@ -879,6 +892,42 @@ function speakAgain() {
 // ─── Init ────────────────────────────────────────────────────────
 speechSynthesis.onvoiceschanged = () => {};
 preloadDay(1);
+
+// ─── 배경 대각선 이미지 그리드 ──────────────────────────────────
+(function buildBgGrid() {
+  const grid = document.getElementById('bgGrid');
+  const keys = Object.keys(LOCAL_IMAGES);
+  const COLS = 4, ROWS = 7, SIZE = Math.ceil(Math.max(screen.width, 390) / COLS);
+  const rotations = [-8,-4,0,4,8,-6,3,-3,6,-8,4];
+  let ki = 0;
+  const cells = [];
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const diag = r + c; // diagonal index
+      const key  = keys[ki++ % keys.length];
+      const rot  = rotations[(r * COLS + c) % rotations.length];
+      const el   = document.createElement('div');
+      el.style.cssText = `
+        position:absolute;
+        left:${c * SIZE - SIZE * 0.1}px;
+        top:${r * SIZE - SIZE * 0.1}px;
+        width:${SIZE * 1.1}px; height:${SIZE * 1.1}px;
+        border-radius:18px;
+        overflow:hidden;
+        opacity:0;
+        --r:${rot}deg;
+        animation: cellIn 0.4s ease forwards;
+        animation-delay:${diag * 0.12}s;
+      `;
+      const img = document.createElement('img');
+      img.src = LOCAL_IMAGES[key];
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+      el.appendChild(img);
+      grid.appendChild(el);
+      cells.push(el);
+    }
+  }
+})();
 
 // ─── Start Overlay (브라우저 오디오 잠금 해제) ───────────────────
 const startOverlay = document.getElementById('startOverlay');
