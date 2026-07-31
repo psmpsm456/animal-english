@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🐾 동물 영어 단어장</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 30%, #a1c4fd 70%, #c2e9fb 100%);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 12px 48px;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(1.6rem, 6vw, 2.2rem);
+      color: #fff;
+      text-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      margin-bottom: 16px;
+    }
+
+    /* ── Auto toggle ── */
+    .auto-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.75);
+      border-radius: 30px;
+      padding: 10px 20px;
+      margin-bottom: 14px;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: clamp(0.85rem, 3.5vw, 0.95rem);
+      color: #555;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      user-select: none;
+      transition: background 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .auto-toggle.on { background: rgba(255,107,107,0.18); color: #ff6b6b; }
+    .toggle-dot {
+      width: 36px; height: 20px;
+      background: #ccc;
+      border-radius: 10px;
+      position: relative;
+      transition: background 0.3s;
+    }
+    .toggle-dot::after {
+      content:'';
+      position: absolute;
+      width: 14px; height: 14px;
+      background: #fff;
+      border-radius: 50%;
+      top: 3px; left: 3px;
+      transition: left 0.3s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .auto-toggle.on .toggle-dot { background: #ff6b6b; }
+    .auto-toggle.on .toggle-dot::after { left: 19px; }
+
+    /* ── Day Buttons ── */
+    .day-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .day-btn {
+      padding: 11px 18px;
+      border: none;
+      border-radius: 30px;
+      font-family: 'Nunito', sans-serif;
+      font-size: clamp(0.85rem, 3.5vw, 1rem);
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.25s;
+      background: rgba(255,255,255,0.7);
+      color: #888;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      -webkit-tap-highlight-color: transparent;
+      min-height: 44px;
+    }
+    .day-btn.active {
+      background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+      color: #fff;
+      transform: scale(1.08);
+      box-shadow: 0 6px 18px rgba(255,107,107,0.45);
+    }
+    .day-btn:hover:not(.active) {
+      background: rgba(255,255,255,0.95);
+      transform: scale(1.04);
+    }
+
+    /* ── Progress ── */
+    .progress-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 20px;
+    }
+    .progress-label {
+      font-size: 1rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.95);
+    }
+    .progress-bar-bg {
+      width: min(280px, 80vw); height: 12px;
+      background: rgba(255,255,255,0.4);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff6b6b, #ffd93d);
+      border-radius: 6px;
+      transition: width 0.5s ease;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: #fff;
+      border-radius: 36px;
+      padding: 28px 24px 28px;
+      text-align: center;
+      width: min(340px, 92vw);
+      min-height: 460px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin-bottom: 22px;
+      overflow: hidden;
+    }
+
+    /* countdown ring */
+    .timer-ring {
+      position: absolute;
+      top: 14px; right: 14px;
+      width: 44px; height: 44px;
+    }
+    .timer-ring circle.bg { fill:none; stroke:#eee; stroke-width:4; }
+    .timer-ring circle.fg {
+      fill: none;
+      stroke: #ff6b6b;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-dasharray: 100;
+      stroke-dashoffset: 0;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+    @keyframes countdown {
+      from { stroke-dashoffset: 0; }
+      to   { stroke-dashoffset: 100; }
+    }
+    .timer-ring circle.fg.running {
+      animation: countdown 3s linear forwards;
+    }
+
+    /* auto-advance ring */
+    .advance-ring {
+      position: absolute;
+      bottom: 14px; right: 14px;
+      width: 36px; height: 36px;
+      display: none;
+    }
+    .advance-ring circle.bg { fill:none; stroke:#eee; stroke-width:4; }
+    .advance-ring circle.fg {
+      fill: none;
+      stroke: #4ecdc4;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-dasharray: 88;
+      stroke-dashoffset: 88;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+    @keyframes advance-fill {
+      from { stroke-dashoffset: 88; }
+      to   { stroke-dashoffset: 0; }
+    }
+    .advance-ring circle.fg.running {
+      animation: advance-fill 2s linear forwards;
+    }
+
+    /* ── Animal Image ── */
+    .animal-display {
+      width: min(220px, 68vw);
+      height: min(220px, 68vw);
+      border-radius: 24px;
+      overflow: hidden;
+      margin-bottom: 18px;
+      background: #f0f0f0;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    /* All three layers stack absolutely */
+    .animal-img,
+    .animal-emoji,
+    .img-spinner {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+
+    /* ─ Default (no .has-img): emoji visible, image hidden ─ */
+    .animal-img {
+      object-fit: cover;
+      object-position: center;
+      display: none;
+    }
+
+    .animal-display.has-img .animal-img { display: block; }
+
+    .img-spinner {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 4;
+    }
+    .img-spinner::after {
+      content: '';
+      width: 44px;
+      height: 44px;
+      border: 5px solid rgba(255,107,107,0.2);
+      border-top-color: #ff6b6b;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes popIn {
+      0%  { transform: scale(0.4); opacity: 0; }
+      70% { transform: scale(1.1); }
+      100%{ transform: scale(1);   opacity: 1; }
+    }
+    .animal-display.pop .animal-img {
+      animation: popIn 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    /* ── Word area ── */
+    .word-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .word-area.show { opacity:1; transform:translateY(0); }
+
+    .english-word {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(2rem, 8vw, 2.5rem);
+      color: #2d2d2d;
+      letter-spacing: 3px;
+    }
+    .korean-word {
+      font-size: clamp(1rem, 4vw, 1.1rem);
+      font-weight: 700;
+      color: #aaa;
+    }
+    .speak-btn {
+      margin-top: 8px;
+      background: linear-gradient(135deg, #4ecdc4, #44a08d);
+      border: none;
+      border-radius: 50%;
+      width: 56px; height: 56px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      box-shadow: 0 5px 14px rgba(78,205,196,0.45);
+      transition: transform 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .speak-btn:hover  { transform: scale(1.12); }
+    .speak-btn:active { transform: scale(0.90); }
+
+    .waiting {
+      font-size: 1rem;
+      color: #bbb;
+      font-weight: 700;
+      letter-spacing: 3px;
+    }
+    @keyframes blink {
+      0%,100%{ opacity:0.3; }
+      50%    { opacity:1; }
+    }
+    .waiting span { animation: blink 1.2s infinite; }
+    .waiting span:nth-child(2){ animation-delay:0.4s; }
+    .waiting span:nth-child(3){ animation-delay:0.8s; }
+
+    /* ── Nav ── */
+    .nav-row {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .nav-btn {
+      background: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 64px; height: 64px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.14);
+      transition: all 0.25s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-btn:hover:not(:disabled) {
+      transform: scale(1.12);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.2);
+    }
+    .nav-btn:active:not(:disabled) { transform: scale(0.92); }
+    .nav-btn:disabled { opacity:0.3; cursor:not-allowed; }
+
+    .card-num {
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: rgba(255,255,255,0.95);
+      min-width: 72px;
+      text-align: center;
+    }
+
+    /* ── Done banner ── */
+    .done-banner {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 18px 28px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      margin-top: 18px;
+      font-weight: 800;
+      color: #ff6b6b;
+      font-size: 1.25rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐾 동물 영어 단어장</h1>
+
+  <!-- Auto-advance toggle -->
+  <div class="auto-toggle on" id="autoToggle" onclick="toggleAuto()">
+    <div class="toggle-dot"></div>
+    <span id="autoLabel">자동 넘김 ON</span>
+  </div>
+
+  <div class="day-buttons" id="dayBtns"></div>
+
+  <div class="progress-wrap">
+    <div class="progress-label" id="progressLabel">1 / 20</div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill" style="width:5%"></div>
+    </div>
+  </div>
+
+  <div class="card" id="mainCard">
+    <!-- countdown ring (3s) -->
+    <svg class="timer-ring" viewBox="0 0 44 44">
+      <circle class="bg" cx="22" cy="22" r="15.9"/>
+      <circle class="fg" id="timerFg" cx="22" cy="22" r="15.9"/>
+    </svg>
+
+    <!-- auto-advance ring (2s) -->
+    <svg class="advance-ring" id="advanceRing" viewBox="0 0 36 36">
+      <circle class="bg" cx="18" cy="18" r="14"/>
+      <circle class="fg" id="advanceFg" cx="18" cy="18" r="14"/>
+    </svg>
+
+    <!-- Animal photo / emoji -->
+    <div class="animal-display" id="animalDisplay">
+      <img class="animal-img" id="animalImg" alt="">
+      <div class="img-spinner" id="imgSpinner"></div>
+    </div>
+
+    <!-- Word (revealed after 3s) -->
+    <div class="word-area" id="wordArea">
+      <div class="english-word" id="engWord">Cat</div>
+      <div class="korean-word" id="korWord">고양이</div>
+      <button class="speak-btn" id="speakBtn" title="다시 듣기" onclick="speakAgain()">🔊</button>
+    </div>
+
+    <div class="waiting" id="waiting">
+      <span>●</span><span>●</span><span>●</span>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <button class="nav-btn" id="prevBtn" onclick="go(-1)">◀</button>
+    <span class="card-num" id="cardNum">1 / 20</span>
+    <button class="nav-btn" id="nextBtn" onclick="go(1)">▶</button>
+  </div>
+
+  <div class="done-banner" id="doneBanner">
+    🎉 잘했어요! 오늘 단어 모두 완료! 🎉<br>
+    <span style="font-size:0.9rem;color:#888;font-weight:600">다음 날짜로 넘어가 봐요!</span>
+  </div>
+
+<script>
+// ─── Wikipedia name mapping (specific species = single-animal photos) ────
+const WIKI_MAP = {
+  // Day 1 - common animals
+  'Cat':         'Cat',
+  'Dog':         'Dog',
+  'Fish':        'Goldfish',
+  'Bird':        'Atlantic_puffin',
+  'Rabbit':      'European_rabbit',
+  'Cow':         'Hereford_cattle',
+  'Pig':         'Domestic_pig',
+  'Duck':        'Mallard',
+  'Horse':       'Horse',
+  'Frog':        'Common_frog',
+  'Lion':        'Lion',
+  'Tiger':       'Tiger',
+  'Bear':        'Brown_bear',
+  'Elephant':    'African_bush_elephant',
+  'Monkey':      'Rhesus_macaque',
+  'Snake':       'Ball_python',
+  'Turtle':      'Red-eared_slider',
+  'Chicken':     'Chicken',
+  'Sheep':       'Sheep',
+  'Goat':        'Domestic_goat',
+  // Day 2 - wild & insects
+  'Fox':         'Red_fox',
+  'Wolf':        'Gray_wolf',
+  'Deer':        'White-tailed_deer',
+  'Owl':         'Barn_owl',
+  'Eagle':       'Bald_eagle',
+  'Penguin':     'Emperor_penguin',
+  'Dolphin':     'Common_bottlenose_dolphin',
+  'Whale':       'Blue_whale',
+  'Shark':       'Great_white_shark',
+  'Crab':        'Blue_crab',
+  'Butterfly':   'Monarch_butterfly',
+  'Bee':         'Western_honey_bee',
+  'Ant':         'Formica_rufa',
+  'Spider':      'Argiope_bruennichi',
+  'Ladybug':     'Coccinella_septempunctata',
+  'Snail':       'Garden_snail',
+  'Jellyfish':   'Moon_jellyfish',
+  'Octopus':     'Common_octopus',
+  'Seal':        'Harbor_seal',
+  'Lobster':     'American_lobster',
+  // Day 3 - exotic
+  'Giraffe':     'Giraffe',
+  'Zebra':       'Plains_zebra',
+  'Hippo':       'Hippopotamus',
+  'Rhino':       'White_rhinoceros',
+  'Gorilla':     'Western_gorilla',
+  'Parrot':      'Scarlet_macaw',
+  'Flamingo':    'American_flamingo',
+  'Crocodile':   'Nile_crocodile',
+  'Panda':       'Giant_panda',
+  'Koala':       'Koala',
+  'Kangaroo':    'Red_kangaroo',
+  'Camel':       'Dromedary',
+  'Peacock':     'Indian_peafowl',
+  'Bat':         'Common_pipistrelle',
+  'Hedgehog':    'European_hedgehog',
+  'Squirrel':    'Eastern_gray_squirrel',
+  'Raccoon':     'Raccoon',
+  'Skunk':       'Striped_skunk',
+  'Cheetah':     'Cheetah',
+  'Ostrich':     'Common_ostrich',
+  // Day 4 - small/arctic/birds
+  'Mouse':       'House_mouse',
+  'Hamster':     'Golden_hamster',
+  'Rat':         'Brown_rat',
+  'Beaver':      'North_American_beaver',
+  'Otter':       'Sea_otter',
+  'Sloth':       'Bradypus_tridactylus',
+  'Llama':       'Llama',
+  'Moose':       'Moose',
+  'Bison':       'American_bison',
+  'Donkey':      'Donkey',
+  'Polar Bear':  'Polar_bear',
+  'Swan':        'Mute_swan',
+  'Dove':        'Rock_dove',
+  'Turkey':      'Wild_turkey',
+  'Rooster':     'Rooster',
+  'Chick':       'Chicken',
+  'Warthog':     'Common_warthog',
+  'Caterpillar': 'Papilio_machaon',
+  'Grasshopper': 'Migratory_locust',
+  'Mosquito':    'Aedes_aegypti',
+  // Day 5 - sea creatures & more
+  'Clownfish':   'Ocellaris_clownfish',
+  'Pufferfish':  'Arothron_nigropunctatus',
+  'Shrimp':      'Pacific_white_shrimp',
+  'Squid':       'Doryteuthis_pealeii',
+  'Beetle':      'Stag_beetle',
+  'Gecko':       'Leopard_gecko',
+  'Worm':        'Lumbricus_terrestris',
+  'Cricket':     'Gryllus_campestris',
+  'Starfish':    'Asterias_rubens',
+  'Walrus':      'Walrus',
+  'Narwhal':     'Narwhal',
+  'Manta Ray':   'Manta_ray',
+  'Dragonfly':   'Calopteryx_splendens',
+};
+
+function wikiTitle(word) {
+  return WIKI_MAP[word] || word;
+}
+
+// ─── Animal Data ────────────────────────────────────────────────
+const DATA = {
+  1:[
+    {w:'Cat',       e:'🐱',k:'고양이'},
+    {w:'Dog',       e:'🐶',k:'강아지'},
+    {w:'Fish',      e:'🐟',k:'물고기'},
+    {w:'Bird',      e:'🐦',k:'새'},
+    {w:'Rabbit',    e:'🐰',k:'토끼'},
+    {w:'Cow',       e:'🐮',k:'소'},
+    {w:'Pig',       e:'🐷',k:'돼지'},
+    {w:'Duck',      e:'🦆',k:'오리'},
+    {w:'Horse',     e:'🐴',k:'말'},
+    {w:'Frog',      e:'🐸',k:'개구리'},
+    {w:'Lion',      e:'🦁',k:'사자'},
+    {w:'Tiger',     e:'🐯',k:'호랑이'},
+    {w:'Bear',      e:'🐻',k:'곰'},
+    {w:'Elephant',  e:'🐘',k:'코끼리'},
+    {w:'Monkey',    e:'🐵',k:'원숭이'},
+    {w:'Snake',     e:'🐍',k:'뱀'},
+    {w:'Turtle',    e:'🐢',k:'거북이'},
+    {w:'Chicken',   e:'🐔',k:'닭'},
+    {w:'Sheep',     e:'🐑',k:'양'},
+    {w:'Goat',      e:'🐐',k:'염소'},
+  ],
+  2:[
+    {w:'Fox',       e:'🦊',k:'여우'},
+    {w:'Wolf',      e:'🐺',k:'늑대'},
+    {w:'Deer',      e:'🦌',k:'사슴'},
+    {w:'Owl',       e:'🦉',k:'부엉이'},
+    {w:'Eagle',     e:'🦅',k:'독수리'},
+    {w:'Penguin',   e:'🐧',k:'펭귄'},
+    {w:'Dolphin',   e:'🐬',k:'돌고래'},
+    {w:'Whale',     e:'🐳',k:'고래'},
+    {w:'Shark',     e:'🦈',k:'상어'},
+    {w:'Crab',      e:'🦀',k:'게'},
+    {w:'Butterfly', e:'🦋',k:'나비'},
+    {w:'Bee',       e:'🐝',k:'꿀벌'},
+    {w:'Ant',       e:'🐜',k:'개미'},
+    {w:'Spider',    e:'🕷️',k:'거미'},
+    {w:'Ladybug',   e:'🐞',k:'무당벌레'},
+    {w:'Snail',     e:'🐌',k:'달팽이'},
+    {w:'Jellyfish', e:'🪼',k:'해파리'},
+    {w:'Octopus',   e:'🐙',k:'문어'},
+    {w:'Seal',      e:'🦭',k:'바다표범'},
+    {w:'Lobster',   e:'🦞',k:'바닷가재'},
+  ],
+  3:[
+    {w:'Giraffe',   e:'🦒',k:'기린'},
+    {w:'Zebra',     e:'🦓',k:'얼룩말'},
+    {w:'Hippo',     e:'🦛',k:'하마'},
+    {w:'Rhino',     e:'🦏',k:'코뿔소'},
+    {w:'Gorilla',   e:'🦍',k:'고릴라'},
+    {w:'Parrot',    e:'🦜',k:'앵무새'},
+    {w:'Flamingo',  e:'🦩',k:'플라밍고'},
+    {w:'Crocodile', e:'🐊',k:'악어'},
+    {w:'Panda',     e:'🐼',k:'판다'},
+    {w:'Koala',     e:'🐨',k:'코알라'},
+    {w:'Kangaroo',  e:'🦘',k:'캥거루'},
+    {w:'Camel',     e:'🐪',k:'낙타'},
+    {w:'Peacock',   e:'🦚',k:'공작새'},
+    {w:'Bat',       e:'🦇',k:'박쥐'},
+    {w:'Hedgehog',  e:'🦔',k:'고슴도치'},
+    {w:'Squirrel',  e:'🐿️',k:'다람쥐'},
+    {w:'Raccoon',   e:'🦝',k:'너구리'},
+    {w:'Skunk',     e:'🦨',k:'스컹크'},
+    {w:'Cheetah',   e:'🐆',k:'치타'},
+    {w:'Ostrich',   e:'🦤',k:'타조'},
+  ],
+  4:[
+    {w:'Mouse',      e:'🐭',k:'쥐'},
+    {w:'Hamster',    e:'🐹',k:'햄스터'},
+    {w:'Rat',        e:'🐀',k:'쥐(큰)'},
+    {w:'Beaver',     e:'🦫',k:'비버'},
+    {w:'Otter',      e:'🦦',k:'수달'},
+    {w:'Sloth',      e:'🦥',k:'나무늘보'},
+    {w:'Llama',      e:'🦙',k:'라마'},
+    {w:'Moose',      e:'🫎',k:'무스'},
+    {w:'Bison',      e:'🦬',k:'들소'},
+    {w:'Donkey',     e:'🫏',k:'당나귀'},
+    {w:'Polar Bear', e:'🐻‍❄️',k:'북극곰'},
+    {w:'Swan',       e:'🦢',k:'백조'},
+    {w:'Dove',       e:'🕊️',k:'비둘기'},
+    {w:'Turkey',     e:'🦃',k:'칠면조'},
+    {w:'Rooster',    e:'🐓',k:'수탉'},
+    {w:'Chick',      e:'🐤',k:'병아리'},
+    {w:'Warthog',    e:'🐗',k:'멧돼지'},
+    {w:'Caterpillar',e:'🐛',k:'애벌레'},
+    {w:'Grasshopper',e:'🦗',k:'메뚜기'},
+    {w:'Mosquito',   e:'🦟',k:'모기'},
+  ],
+  5:[
+    {w:'Clownfish',  e:'🐠',k:'흰동가리'},
+    {w:'Pufferfish', e:'🐡',k:'복어'},
+    {w:'Shrimp',     e:'🦐',k:'새우'},
+    {w:'Squid',      e:'🦑',k:'오징어'},
+    {w:'Beetle',     e:'🪲',k:'딱정벌레'},
+    {w:'Gecko',      e:'🦎',k:'도마뱀'},
+    {w:'Worm',       e:'🪱',k:'지렁이'},
+    {w:'Mosquito',   e:'🦟',k:'모기'},
+    {w:'Cricket',    e:'🦗',k:'귀뚜라미'},
+    {w:'Caterpillar',e:'🐛',k:'애벌레'},
+    {w:'Starfish',   e:'⭐',k:'불가사리'},
+    {w:'Walrus',     e:'🦭',k:'바다코끼리'},
+    {w:'Narwhal',    e:'🐬',k:'일각고래'},
+    {w:'Manta Ray',  e:'🐟',k:'만타가오리'},
+    {w:'Swan',       e:'🦢',k:'백조'},
+    {w:'Dove',       e:'🕊️',k:'비둘기'},
+    {w:'Turkey',     e:'🦃',k:'칠면조'},
+    {w:'Rooster',    e:'🐓',k:'수탉'},
+    {w:'Chick',      e:'🐤',k:'병아리'},
+    {w:'Warthog',    e:'🐗',k:'멧돼지'},
+  ],
+};
+
+// ─── Promise-based image cache ──────────────────────────────────
+// Key fix: store the Promise itself — multiple awaits share one fetch, no race conditions
+const imgPromises = {};
+
+function getImageUrl(word) {
+  if (!imgPromises[word]) {
+    imgPromises[word] = (async () => {
+      try {
+        const title = wikiTitle(word);
+        const res = await fetch(
+          `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
+          { signal: AbortSignal.timeout(8000) }
+        );
+        const data = await res.json();
+        return data.thumbnail?.source ?? null;
+      } catch { return null; }
+    })();
+  }
+  return imgPromises[word]; // returns same Promise to every caller
+}
+
+function preloadDay(day) {
+  DATA[day].forEach(a => getImageUrl(a.w)); // kick off fetches early
+}
+
+// ─── State ──────────────────────────────────────────────────────
+let currentDay  = 1;
+let currentIdx  = 0;
+let revealTimer = null;
+let advTimer    = null;
+let autoOn      = true;
+let loadSeq     = 0;  // increments on every showCard; stale async ops check this
+
+// ─── Elements ───────────────────────────────────────────────────
+const dayBtnsEl       = document.getElementById('dayBtns');
+const animalDisplay   = document.getElementById('animalDisplay');
+const animalImg       = document.getElementById('animalImg');
+const imgSpinner      = document.getElementById('imgSpinner');
+const wordAreaEl      = document.getElementById('wordArea');
+const engWordEl       = document.getElementById('engWord');
+const korWordEl       = document.getElementById('korWord');
+const waitingEl       = document.getElementById('waiting');
+const prevBtn         = document.getElementById('prevBtn');
+const nextBtn         = document.getElementById('nextBtn');
+const cardNumEl       = document.getElementById('cardNum');
+const progressLabel   = document.getElementById('progressLabel');
+const progressFill    = document.getElementById('progressFill');
+const timerFgEl       = document.getElementById('timerFg');
+const advanceRing     = document.getElementById('advanceRing');
+const advanceFgEl     = document.getElementById('advanceFg');
+const doneBanner      = document.getElementById('doneBanner');
+const autoToggle      = document.getElementById('autoToggle');
+const autoLabel       = document.getElementById('autoLabel');
+
+// ─── Day Buttons ─────────────────────────────────────────────────
+for (let d = 1; d <= 5; d++) {
+  const btn = document.createElement('button');
+  btn.className = 'day-btn' + (d === 1 ? ' active' : '');
+  btn.textContent = `${d}일차`;
+  btn.onclick = () => selectDay(d);
+  dayBtnsEl.appendChild(btn);
+}
+
+function selectDay(day) {
+  cancelTimers();
+  currentDay = day;
+  currentIdx = 0;
+  document.querySelectorAll('.day-btn').forEach((b, i) => {
+    b.classList.toggle('active', i + 1 === day);
+  });
+  doneBanner.style.display = 'none';
+  preloadDay(day);
+  showCard();
+}
+
+// ─── Auto Toggle ─────────────────────────────────────────────────
+function toggleAuto() {
+  autoOn = !autoOn;
+  autoToggle.classList.toggle('on', autoOn);
+  autoLabel.textContent = autoOn ? '자동 넘김 ON' : '자동 넘김 OFF';
+  if (!autoOn) { cancelAdvance(); }
+}
+
+// ─── Card Display ────────────────────────────────────────────────
+function showCard() {
+  cancelTimers();
+  const list   = DATA[currentDay];
+  const animal = list[currentIdx];
+
+  // progress
+  const pct = Math.round(((currentIdx + 1) / list.length) * 100);
+  progressLabel.textContent = `${currentIdx + 1} / ${list.length}`;
+  progressFill.style.width  = pct + '%';
+  cardNumEl.textContent     = `${currentIdx + 1} / ${list.length}`;
+  prevBtn.disabled = currentIdx === 0;
+  nextBtn.disabled = currentIdx === list.length - 1;
+
+  // hide word / advance ring
+  wordAreaEl.classList.remove('show');
+  waitingEl.style.display = 'block';
+  advanceRing.style.display = 'none';
+
+  // show image or emoji
+  loadAnimalImage(animal);
+
+  // pop animation
+  animalDisplay.classList.remove('pop');
+  void animalDisplay.offsetWidth;
+  animalDisplay.classList.add('pop');
+
+  // countdown ring
+  timerFgEl.classList.remove('running');
+  void timerFgEl.offsetWidth;
+  timerFgEl.classList.add('running');
+
+  // reveal after 3 seconds
+  revealTimer = setTimeout(() => revealWord(animal), 3000);
+}
+
+async function loadAnimalImage(animal) {
+  const mySeq = ++loadSeq;
+
+  // ── Step 1: reset (show spinner, hide old image) ──
+  animalDisplay.classList.remove('has-img');
+  animalImg.src = '';
+  imgSpinner.style.display = 'flex';
+
+  // ── Step 2: await URL from Promise cache (one fetch per word) ──
+  const src = await getImageUrl(animal.w);
+  if (mySeq !== loadSeq) return;
+  imgSpinner.style.display = 'none';
+  if (!src) return;
+
+  // ── Step 3: preload image bytes into browser cache ──
+  await new Promise(resolve => {
+    const t = new Image();
+    t.onload = t.onerror = resolve;
+    t.src = src;
+  });
+  if (mySeq !== loadSeq) return; // stale
+
+  // ── Step 4: single class toggle — CSS handles show/hide, zero overlap ──
+  animalImg.src = src;
+  animalDisplay.classList.add('has-img');
+}
+
+function revealWord(animal) {
+  engWordEl.textContent = animal.w;
+  korWordEl.textContent = animal.k;
+  waitingEl.style.display = 'none';
+  wordAreaEl.classList.add('show');
+
+  // TTS — auto advance after it ends
+  speakWithCallback(animal.w, () => {
+    if (!autoOn) return;
+    const list = DATA[currentDay];
+    if (currentIdx < list.length - 1) {
+      startAdvanceRing();
+      advTimer = setTimeout(() => go(1), 2000);
+    } else {
+      doneBanner.style.display = 'flex';
+    }
+  });
+}
+
+function startAdvanceRing() {
+  advanceRing.style.display = 'block';
+  advanceFgEl.classList.remove('running');
+  void advanceFgEl.offsetWidth;
+  advanceFgEl.classList.add('running');
+}
+
+// ─── Navigation ──────────────────────────────────────────────────
+function go(dir) {
+  cancelTimers();
+  const list = DATA[currentDay];
+  const next = currentIdx + dir;
+  if (next < 0 || next >= list.length) return;
+  currentIdx = next;
+  doneBanner.style.display = 'none';
+  showCard();
+}
+
+function cancelTimers() {
+  clearTimeout(revealTimer);
+  clearTimeout(advTimer);
+  speechSynthesis.cancel();
+  advanceRing.style.display = 'none';
+}
+
+function cancelAdvance() {
+  clearTimeout(advTimer);
+  advanceRing.style.display = 'none';
+}
+
+// ─── TTS ─────────────────────────────────────────────────────────
+function speakWithCallback(word, onEnd) {
+  if (!window.speechSynthesis) { onEnd?.(); return; }
+  speechSynthesis.cancel();
+
+  const u = new SpeechSynthesisUtterance(word);
+  u.lang  = 'en-US';
+  u.rate  = 0.78;
+  u.pitch = 1.15;
+
+  const voices = speechSynthesis.getVoices();
+  const nice = voices.find(v => v.lang.startsWith('en') && /samantha|karen|moira|tessa|victoria/i.test(v.name))
+            || voices.find(v => v.lang.startsWith('en'));
+  if (nice) u.voice = nice;
+
+  u.onend   = onEnd;
+  u.onerror = onEnd; // still advance on error
+  speechSynthesis.speak(u);
+}
+
+function speakAgain() {
+  cancelAdvance();
+  const animal = DATA[currentDay][currentIdx];
+  speakWithCallback(animal.w, () => {
+    if (!autoOn) return;
+    const list = DATA[currentDay];
+    if (currentIdx < list.length - 1) {
+      startAdvanceRing();
+      advTimer = setTimeout(() => go(1), 2000);
+    }
+  });
+}
+
+// ─── Init ────────────────────────────────────────────────────────
+speechSynthesis.onvoiceschanged = () => {};
+preloadDay(1);
+showCard();
+</script>
+</body>
+</html>
