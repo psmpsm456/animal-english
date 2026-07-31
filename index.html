@@ -10,7 +10,7 @@
 
     body {
       font-family: 'Baloo 2', sans-serif;
-      background: linear-gradient(135deg, #fff0f5 0%, #ffc2e0 35%, #ff8ec8 65%, #ff5bb0 100%);
+      background: #f0f0f0;
       min-height: 100vh;
       min-height: 100dvh;
       display: flex;
@@ -23,8 +23,8 @@
     h1 {
       font-family: 'Bubblegum Sans', cursive;
       font-size: clamp(1.6rem, 6vw, 2.2rem);
-      color: #fff;
-      text-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      color: #111;
+      text-shadow: none;
       margin-bottom: 16px;
     }
 
@@ -46,7 +46,7 @@
       transition: background 0.2s;
       -webkit-tap-highlight-color: transparent;
     }
-    .auto-toggle.on { background: rgba(255,91,176,0.15); color: #ff5bb0; }
+    .auto-toggle.on { background: rgba(0,0,0,0.07); color: #111; }
     .toggle-dot {
       width: 36px; height: 20px;
       background: #ccc;
@@ -64,7 +64,7 @@
       transition: left 0.3s;
       box-shadow: 0 1px 4px rgba(0,0,0,0.2);
     }
-    .auto-toggle.on .toggle-dot { background: #ff5bb0; }
+    .auto-toggle.on .toggle-dot { background: #111; }
     .auto-toggle.on .toggle-dot::after { left: 19px; }
 
     /* ── Day Buttons ── */
@@ -91,10 +91,10 @@
       min-height: 44px;
     }
     .day-btn.active {
-      background: linear-gradient(135deg, #ff5bb0, #ff8ed4);
+      background: #111;
       color: #fff;
       transform: scale(1.08);
-      box-shadow: 0 6px 18px rgba(255,91,176,0.45);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.22);
     }
     .day-btn:hover:not(.active) {
       background: rgba(255,255,255,0.95);
@@ -112,7 +112,7 @@
     .progress-label {
       font-size: 1rem;
       font-weight: 700;
-      color: rgba(255,255,255,0.95);
+      color: #444;
     }
     .progress-bar-bg {
       width: min(280px, 80vw); height: 12px;
@@ -122,7 +122,7 @@
     }
     .progress-bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, #ff5bb0, #ffb3e0);
+      background: #222;
       border-radius: 6px;
       transition: width 0.5s ease;
     }
@@ -145,30 +145,28 @@
       overflow: hidden;
     }
 
-    /* countdown ring */
-    .timer-ring {
+    /* countdown number */
+    #countdownNum {
       position: absolute;
-      top: 14px; right: 14px;
-      width: 44px; height: 44px;
+      top: 12px; right: 12px;
+      width: 48px; height: 48px;
+      background: rgba(0,0,0,0.07);
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Bubblegum Sans', cursive;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: #222;
     }
-    .timer-ring circle.bg { fill:none; stroke:#eee; stroke-width:4; }
-    .timer-ring circle.fg {
-      fill: none;
-      stroke: #ff5bb0;
-      stroke-width: 4;
-      stroke-linecap: round;
-      stroke-dasharray: 100;
-      stroke-dashoffset: 0;
-      transform: rotate(-90deg);
-      transform-origin: 50% 50%;
+    @keyframes numPop {
+      0%   { transform: scale(1.4); opacity: 0; }
+      25%  { transform: scale(1);   opacity: 1; }
+      75%  { transform: scale(1);   opacity: 1; }
+      100% { transform: scale(0.7); opacity: 0; }
     }
-    @keyframes countdown {
-      from { stroke-dashoffset: 0; }
-      to   { stroke-dashoffset: 100; }
-    }
-    .timer-ring circle.fg.running {
-      animation: countdown 3s linear forwards;
-    }
+    .num-anim { animation: numPop 1s ease-in-out forwards; }
 
     /* auto-advance ring */
     .advance-ring {
@@ -236,8 +234,8 @@
       content: '';
       width: 44px;
       height: 44px;
-      border: 5px solid rgba(255,91,176,0.2);
-      border-top-color: #ff5bb0;
+      border: 5px solid rgba(0,0,0,0.1);
+      border-top-color: #333;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -273,17 +271,17 @@
     .korean-word {
       font-family: 'Jua', sans-serif;
       font-size: clamp(1rem, 4vw, 1.2rem);
-      color: #cc88bb;
+      color: #666;
     }
     .speak-btn {
       margin-top: 8px;
-      background: linear-gradient(135deg, #ff5bb0, #ff8ed4);
+      background: #111;
       border: none;
       border-radius: 50%;
       width: 56px; height: 56px;
       font-size: 1.5rem;
       cursor: pointer;
-      box-shadow: 0 5px 14px rgba(255,91,176,0.45);
+      box-shadow: 0 5px 14px rgba(0,0,0,0.22);
       transition: transform 0.2s;
       -webkit-tap-highlight-color: transparent;
     }
@@ -331,7 +329,7 @@
     .card-num {
       font-size: 1.3rem;
       font-weight: 900;
-      color: rgba(255,255,255,0.95);
+      color: #333;
       min-width: 72px;
       text-align: center;
     }
@@ -343,12 +341,12 @@
       align-items: center;
       gap: 8px;
       padding: 18px 28px;
-      background: rgba(255,255,255,0.9);
+      background: #fff;
       border-radius: 24px;
-      box-shadow: 0 8px 24px rgba(255,91,176,0.2);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
       margin-top: 18px;
       font-weight: 800;
-      color: #ff5bb0;
+      color: #111;
       font-size: 1.25rem;
       text-align: center;
     }
@@ -432,11 +430,8 @@
   </div>
 
   <div class="card" id="mainCard">
-    <!-- countdown ring (3s) -->
-    <svg class="timer-ring" viewBox="0 0 44 44">
-      <circle class="bg" cx="22" cy="22" r="15.9"/>
-      <circle class="fg" id="timerFg" cx="22" cy="22" r="15.9"/>
-    </svg>
+    <!-- countdown numbers (3s) -->
+    <div id="countdownNum"></div>
 
     <!-- auto-advance ring (2s) -->
     <svg class="advance-ring" id="advanceRing" viewBox="0 0 36 36">
@@ -709,6 +704,7 @@ let currentDay  = 1;
 let currentIdx  = 0;
 let revealTimer = null;
 let advTimer    = null;
+let cdInterval  = null;
 let autoOn      = true;
 let loadSeq     = 0;  // increments on every showCard; stale async ops check this
 
@@ -726,7 +722,7 @@ const nextBtn         = document.getElementById('nextBtn');
 const cardNumEl       = document.getElementById('cardNum');
 const progressLabel   = document.getElementById('progressLabel');
 const progressFill    = document.getElementById('progressFill');
-const timerFgEl       = document.getElementById('timerFg');
+const countdownNumEl  = document.getElementById('countdownNum');
 const advanceRing     = document.getElementById('advanceRing');
 const advanceFgEl     = document.getElementById('advanceFg');
 const doneBanner      = document.getElementById('doneBanner');
@@ -789,10 +785,22 @@ function showCard() {
   void animalDisplay.offsetWidth;
   animalDisplay.classList.add('pop');
 
-  // countdown ring
-  timerFgEl.classList.remove('running');
-  void timerFgEl.offsetWidth;
-  timerFgEl.classList.add('running');
+  // countdown numbers 3 → 2 → 1
+  clearInterval(cdInterval);
+  let cdCount = 3;
+  function showNum(n) {
+    countdownNumEl.textContent = n;
+    countdownNumEl.style.display = 'flex';
+    countdownNumEl.classList.remove('num-anim');
+    void countdownNumEl.offsetWidth;
+    countdownNumEl.classList.add('num-anim');
+  }
+  showNum(cdCount);
+  cdInterval = setInterval(() => {
+    cdCount--;
+    if (cdCount <= 0) { clearInterval(cdInterval); countdownNumEl.style.display = 'none'; return; }
+    showNum(cdCount);
+  }, 1000);
 
   // reveal after 3 seconds
   revealTimer = setTimeout(() => revealWord(animal), 3000);
@@ -865,6 +873,8 @@ function go(dir) {
 function cancelTimers() {
   clearTimeout(revealTimer);
   clearTimeout(advTimer);
+  clearInterval(cdInterval);
+  countdownNumEl.style.display = 'none';
   speechSynthesis.cancel();
   advanceRing.style.display = 'none';
 }
