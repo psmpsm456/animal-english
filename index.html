@@ -358,7 +358,7 @@
 <!-- ── Start Overlay ── -->
 <div id="startOverlay" style="
   position:fixed; inset:0; z-index:9999;
-  background: linear-gradient(135deg, #ff5bb0 0%, #ff8ec8 40%, #ffc2e0 70%, #fff0f5 100%);
+  background: #000;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:20px; transition: opacity 0.3s;
   font-family:'Nunito',sans-serif;
@@ -366,18 +366,18 @@
 ">
   <!-- 대각선 스트립 배경 -->
   <div id="bgGrid" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;"></div>
-  <!-- 핑크 오버레이 -->
-  <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,91,176,0.5) 0%,rgba(255,142,200,0.4) 50%,rgba(255,240,245,0.35) 100%);pointer-events:none;"></div>
+  <!-- 텍스트 가독성용 살짝 어두운 오버레이 -->
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.22);pointer-events:none;"></div>
 
   <!-- 전면 콘텐츠 -->
   <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:20px;">
     <div style="font-size:clamp(4rem,20vw,7rem); line-height:1;">🐾</div>
-    <div style="font-family:'Fredoka One',cursive; font-size:clamp(1.6rem,6vw,2.4rem); color:#fff; text-shadow:0 3px 10px rgba(0,0,0,0.25);">Animal English</div>
+    <div style="font-family:'Fredoka One',cursive; font-size:clamp(1.6rem,6vw,2.4rem); color:#fff; text-shadow:0 2px 12px rgba(0,0,0,0.6), 0 0 30px rgba(0,0,0,0.4);">Animal English</div>
     <div id="startBtn" style="
-      background:rgba(255,255,255,0.92); border-radius:50px;
+      background:rgba(255,255,255,0.95); border-radius:50px;
       padding:16px 40px; font-size:clamp(1.1rem,4.5vw,1.4rem);
       font-weight:900; color:#ff5bb0;
-      box-shadow:0 6px 24px rgba(255,91,176,0.4);
+      box-shadow:0 6px 24px rgba(0,0,0,0.3);
       animation: pulse 1.4s ease-in-out infinite;
       font-family:'Bubblegum Sans',cursive;
       cursor:pointer; user-select:none;
@@ -386,13 +386,15 @@
   </div>
   <style>
     @keyframes pulse {
-      0%,100% { transform:scale(1); box-shadow:0 6px 24px rgba(255,91,176,0.4); }
-      50%      { transform:scale(1.06); box-shadow:0 10px 32px rgba(255,91,176,0.6); }
+      0%,100% { transform:scale(1); box-shadow:0 6px 24px rgba(0,0,0,0.3); }
+      50%      { transform:scale(1.06); box-shadow:0 10px 32px rgba(0,0,0,0.4); }
     }
     @keyframes stripIn {
       from { transform: skewY(-18deg) translateX(-110%); }
       to   { transform: skewY(-18deg) translateX(0); }
     }
+    @keyframes rotateCW  { from { transform: scale(1.3) rotate(0deg);    } to { transform: scale(1.3) rotate(360deg);  } }
+    @keyframes rotateCCW { from { transform: scale(1.3) rotate(0deg);    } to { transform: scale(1.3) rotate(-360deg); } }
   </style>
 </div>
 
@@ -893,14 +895,17 @@ function speakAgain() {
 speechSynthesis.onvoiceschanged = () => {};
 preloadDay(1);
 
-// ─── 배경 대각선 스트립 (왼쪽에서 순차 슬라이드인) ──────────────
+// ─── 배경 대각선 스트립 (왼쪽에서 순차 슬라이드인 + 완료 후 회전) ──
 (function buildBgGrid() {
   const grid = document.getElementById('bgGrid');
   const keys = Object.keys(LOCAL_IMAGES);
-  const NUM_STRIPS = 7;
+  const NUM_STRIPS = 8;
   const H = Math.max(screen.height, 700);
   const STRIP_H = Math.round(H / NUM_STRIPS);
-  const DURATION = 0.55; // 한 스트립 지속시간(초)
+  const DURATION = 0.52; // 한 스트립 지속시간(초)
+  const allDoneMs = NUM_STRIPS * DURATION * 1000 + 100;
+
+  const imgs = [];
 
   for (let s = 0; s < NUM_STRIPS; s++) {
     const key = keys[s % keys.length];
@@ -917,12 +922,20 @@ preloadDay(1);
     img.src = LOCAL_IMAGES[key];
     img.style.cssText = `
       width:100%; height:100%;
-      object-fit:cover;
-      object-position:center;
+      object-fit:cover; object-position:center;
     `;
     strip.appendChild(img);
     grid.appendChild(strip);
+    imgs.push({ img, dir: s % 2 === 0 ? 'CW' : 'CCW' });
   }
+
+  // 다 채워지면 각 이미지 서로 다른 방향으로 회전
+  setTimeout(() => {
+    imgs.forEach(({ img, dir }) => {
+      img.style.transition = 'none';
+      img.style.animation = `rotate${dir} ${dir === 'CW' ? 12 : 10}s linear infinite`;
+    });
+  }, allDoneMs);
 })();
 
 // ─── Start Overlay (브라우저 오디오 잠금 해제) ───────────────────
