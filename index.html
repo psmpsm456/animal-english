@@ -390,8 +390,8 @@
       50%      { transform:scale(1.06); box-shadow:0 10px 32px rgba(255,91,176,0.6); }
     }
     @keyframes stripIn {
-      from { opacity:0; transform: skewY(-18deg) translateY(30px); }
-      to   { opacity:1; transform: skewY(-18deg) translateY(0); }
+      from { transform: skewY(-18deg) translateX(-110%); }
+      to   { transform: skewY(-18deg) translateX(0); }
     }
   </style>
 </div>
@@ -893,13 +893,14 @@ function speakAgain() {
 speechSynthesis.onvoiceschanged = () => {};
 preloadDay(1);
 
-// ─── 배경 대각선 스트립 (1줄 1동물) ────────────────────────────
+// ─── 배경 대각선 스트립 (왼쪽에서 순차 슬라이드인) ──────────────
 (function buildBgGrid() {
   const grid = document.getElementById('bgGrid');
   const keys = Object.keys(LOCAL_IMAGES);
   const NUM_STRIPS = 7;
   const H = Math.max(screen.height, 700);
   const STRIP_H = Math.round(H / NUM_STRIPS);
+  const DURATION = 0.55; // 한 스트립 지속시간(초)
 
   for (let s = 0; s < NUM_STRIPS; s++) {
     const key = keys[s % keys.length];
@@ -909,9 +910,8 @@ preloadDay(1);
       left:-25%; top:${s * STRIP_H - 30}px;
       width:150%; height:${STRIP_H - 4}px;
       overflow:hidden;
-      opacity:0;
-      animation: stripIn 0.5s cubic-bezier(.22,.68,0,1.2) forwards;
-      animation-delay:${s * 0.2}s;
+      animation: stripIn ${DURATION}s cubic-bezier(0.16,1,0.3,1) both;
+      animation-delay:${s * DURATION}s;
     `;
     const img = document.createElement('img');
     img.src = LOCAL_IMAGES[key];
