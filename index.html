@@ -366,8 +366,8 @@
 ">
   <!-- 대각선 스트립 배경 -->
   <div id="bgGrid" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;"></div>
-  <!-- 텍스트 가독성용 살짝 어두운 오버레이 -->
-  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.22);pointer-events:none;"></div>
+  <!-- 텍스트 가독성용 중앙 그라데이션 -->
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center, rgba(255,255,255,0.35) 0%, transparent 70%);pointer-events:none;"></div>
 
   <!-- 전면 콘텐츠 -->
   <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:20px;">
@@ -395,6 +395,7 @@
     }
     @keyframes panRight { from { transform: translateX(0);    } to { transform: translateX(-50%); } }
     @keyframes panLeft  { from { transform: translateX(-50%); } to { transform: translateX(0);    } }
+    .film-row { display:flex; width:max-content; will-change:transform; }
   </style>
 </div>
 
@@ -895,45 +896,66 @@ function speakAgain() {
 speechSynthesis.onvoiceschanged = () => {};
 preloadDay(1);
 
-// ─── 배경 대각선 스트립 (왼쪽에서 순차 슬라이드인 + 완료 후 회전) ──
+// ─── 배경 대각선 스트립 (필름스트립 방식) ────────────────────────
 (function buildBgGrid() {
   const grid = document.getElementById('bgGrid');
   const keys = Object.keys(LOCAL_IMAGES);
   const NUM_STRIPS = 8;
+  const IMG_SIZE = 110;       // 정사각형 이미지 크기
+  const GAP = 4;
   const H = Math.max(screen.height, 700);
   const STRIP_H = Math.round(H / NUM_STRIPS);
-  const DURATION = 0.52; // 한 스트립 지속시간(초)
-  const allDoneMs = NUM_STRIPS * DURATION * 1000 + 100;
+  const DURATION = 0.3;       // 스트립 슬라이드인 속도
+  const allDoneMs = NUM_STRIPS * DURATION * 1000 + 150;
 
-  const imgs = [];
+  const rows = [];
 
   for (let s = 0; s < NUM_STRIPS; s++) {
-    const key = keys[s % keys.length];
+    // 스트립 컨테이너
     const strip = document.createElement('div');
     strip.style.cssText = `
       position:absolute;
-      left:-25%; top:${s * STRIP_H - 30}px;
-      width:150%; height:${STRIP_H - 4}px;
+      left:-25%; top:${s * STRIP_H - 20}px;
+      width:150%; height:${STRIP_H - GAP}px;
       overflow:hidden;
       animation: stripIn ${DURATION}s cubic-bezier(0.16,1,0.3,1) both;
       animation-delay:${s * DURATION}s;
     `;
-    const img = document.createElement('img');
-    img.src = LOCAL_IMAGES[key];
-    img.style.cssText = `
-      width:200%; height:100%;
-      object-fit:cover; object-position:center;
-      flex-shrink:0;
-    `;
-    strip.appendChild(img);
+
+    // 필름 행 (이미지 여러 장 × 2벌 = 끊김 없는 루프)
+    const row = document.createElement('div');
+    row.className = 'film-row';
+
+    // 몇 장이 필요한지 계산 (화면 너비 충분히 커버)
+    const screenW = Math.max(screen.width, 390);
+    const numImgs = Math.ceil((screenW * 1.6) / (IMG_SIZE + GAP)) + 2;
+    const startKey = (s * numImgs) % keys.length;
+
+    // 이미지 2벌 넣기 (seamless loop)
+    for (let repeat = 0; repeat < 2; repeat++) {
+      for (let i = 0; i < numImgs; i++) {
+        const key = keys[(startKey + i) % keys.length];
+        const img = document.createElement('img');
+        img.src = LOCAL_IMAGES[key];
+        img.style.cssText = `
+          width:${IMG_SIZE}px; height:${IMG_SIZE}px;
+          object-fit:cover; object-position:center top;
+          flex-shrink:0; margin-right:${GAP}px;
+          border-radius:10px;
+        `;
+        row.appendChild(img);
+      }
+    }
+
+    strip.appendChild(row);
     grid.appendChild(strip);
-    imgs.push({ img, dir: s % 2 === 0 ? 'Right' : 'Left' });
+    rows.push({ row, dir: s % 2 === 0 ? 'Right' : 'Left' });
   }
 
-  // 다 채워지면 교대로 오른쪽/왼쪽 대각선 방향으로 흘러가기
+  // 다 채워지면 교대로 오른쪽/왼쪽으로 흘러가기
   setTimeout(() => {
-    imgs.forEach(({ img, dir }) => {
-      img.style.animation = `pan${dir} 6s linear infinite`;
+    rows.forEach(({ row, dir }) => {
+      row.style.animation = `pan${dir} 10s linear infinite`;
     });
   }, allDoneMs);
 })();
