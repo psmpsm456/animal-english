@@ -893,50 +893,34 @@ function speakAgain() {
 speechSynthesis.onvoiceschanged = () => {};
 preloadDay(1);
 
-// ─── 배경 대각선 스트립 ──────────────────────────────────────────
+// ─── 배경 대각선 스트립 (1줄 1동물) ────────────────────────────
 (function buildBgGrid() {
   const grid = document.getElementById('bgGrid');
   const keys = Object.keys(LOCAL_IMAGES);
   const NUM_STRIPS = 7;
-  const IMG_H = 110;          // 각 이미지 높이(px)
-  const STRIP_H = IMG_H + 8;  // 스트립 높이
-  const SKEW = -18;           // 기울기 각도
-  // 스트립이 화면을 꽉 채우도록 top 계산
-  // 기울기로 인해 좌우로 삐져나오므로 left를 넓게
-  const W = Math.max(screen.width, 390);
   const H = Math.max(screen.height, 700);
-  const totalH = H + 80;
-  const stepH  = totalH / (NUM_STRIPS - 0.5);
+  const STRIP_H = Math.round(H / NUM_STRIPS);
 
-  let ki = 0;
   for (let s = 0; s < NUM_STRIPS; s++) {
+    const key = keys[s % keys.length];
     const strip = document.createElement('div');
-    const topPx = s * stepH - 40;
     strip.style.cssText = `
       position:absolute;
-      left:-30%; top:${topPx}px;
-      width:160%; height:${STRIP_H}px;
-      display:flex; gap:6px; align-items:center;
-      transform-origin: left center;
+      left:-25%; top:${s * STRIP_H - 30}px;
+      width:150%; height:${STRIP_H - 4}px;
+      overflow:hidden;
       opacity:0;
-      animation: stripIn 0.45s cubic-bezier(.22,.68,0,1.2) forwards;
-      animation-delay:${s * 0.18}s;
+      animation: stripIn 0.5s cubic-bezier(.22,.68,0,1.2) forwards;
+      animation-delay:${s * 0.2}s;
     `;
-
-    // 각 스트립에 이미지 여러 개 채우기
-    const numImgs = Math.ceil((W * 1.6) / (IMG_H + 6)) + 1;
-    for (let i = 0; i < numImgs; i++) {
-      const key = keys[ki++ % keys.length];
-      const img = document.createElement('img');
-      img.src = LOCAL_IMAGES[key];
-      img.style.cssText = `
-        flex-shrink:0;
-        width:${IMG_H}px; height:${IMG_H}px;
-        object-fit:cover;
-        border-radius:14px;
-      `;
-      strip.appendChild(img);
-    }
+    const img = document.createElement('img');
+    img.src = LOCAL_IMAGES[key];
+    img.style.cssText = `
+      width:100%; height:100%;
+      object-fit:cover;
+      object-position:center;
+    `;
+    strip.appendChild(img);
     grid.appendChild(strip);
   }
 })();
