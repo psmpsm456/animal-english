@@ -147,18 +147,15 @@
 
     /* countdown number */
     #countdownNum {
-      position: absolute;
-      top: 12px; right: 12px;
-      width: 48px; height: 48px;
-      background: rgba(0,0,0,0.07);
-      border-radius: 50%;
       display: none;
       align-items: center;
       justify-content: center;
       font-family: 'Bubblegum Sans', cursive;
-      font-size: 1.6rem;
+      font-size: clamp(3rem, 14vw, 4.5rem);
       font-weight: 900;
       color: #222;
+      line-height: 1;
+      min-height: 60px;
     }
     @keyframes numPop {
       0%   { transform: scale(1.4); opacity: 0; }
@@ -431,8 +428,6 @@
 
   <div class="card" id="mainCard">
     <!-- countdown numbers (3s) -->
-    <div id="countdownNum"></div>
-
     <!-- auto-advance ring (2s) -->
     <svg class="advance-ring" id="advanceRing" viewBox="0 0 36 36">
       <circle class="bg" cx="18" cy="18" r="14"/>
@@ -452,6 +447,8 @@
       <button class="speak-btn" id="speakBtn" title="다시 듣기" onclick="speakAgain()">🔊</button>
     </div>
 
+    <!-- 카운트다운 숫자 (●●● 자리) -->
+    <div id="countdownNum"></div>
     <div class="waiting" id="waiting">
       <span>●</span><span>●</span><span>●</span>
     </div>
@@ -772,9 +769,9 @@ function showCard() {
   prevBtn.disabled = currentIdx === 0;
   nextBtn.disabled = currentIdx === list.length - 1;
 
-  // hide word / advance ring
+  // hide word / advance ring / dots (카운트다운이 대신함)
   wordAreaEl.classList.remove('show');
-  waitingEl.style.display = 'block';
+  waitingEl.style.display = 'none';
   advanceRing.style.display = 'none';
 
   // show image or emoji
@@ -837,6 +834,8 @@ function revealWord(animal) {
   engWordEl.textContent = animal.w;
   korWordEl.textContent = animal.k;
   waitingEl.style.display = 'none';
+  countdownNumEl.style.display = 'none';
+  clearInterval(cdInterval);
   wordAreaEl.classList.add('show');
 
   // TTS — auto advance after it ends
