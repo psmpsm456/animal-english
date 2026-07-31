@@ -358,7 +358,7 @@
 <!-- ── Start Overlay ── -->
 <div id="startOverlay" style="
   position:fixed; inset:0; z-index:9999;
-  background: #000;
+  background: #fff;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:20px; transition: opacity 0.3s;
   font-family:'Nunito',sans-serif;
@@ -393,8 +393,8 @@
       from { transform: skewY(-18deg) translateX(-110%); }
       to   { transform: skewY(-18deg) translateX(0); }
     }
-    @keyframes rotateCW  { from { transform: scale(1.3) rotate(0deg);    } to { transform: scale(1.3) rotate(360deg);  } }
-    @keyframes rotateCCW { from { transform: scale(1.3) rotate(0deg);    } to { transform: scale(1.3) rotate(-360deg); } }
+    @keyframes panRight { from { transform: translateX(0);    } to { transform: translateX(-50%); } }
+    @keyframes panLeft  { from { transform: translateX(-50%); } to { transform: translateX(0);    } }
   </style>
 </div>
 
@@ -921,19 +921,19 @@ preloadDay(1);
     const img = document.createElement('img');
     img.src = LOCAL_IMAGES[key];
     img.style.cssText = `
-      width:100%; height:100%;
+      width:200%; height:100%;
       object-fit:cover; object-position:center;
+      flex-shrink:0;
     `;
     strip.appendChild(img);
     grid.appendChild(strip);
-    imgs.push({ img, dir: s % 2 === 0 ? 'CW' : 'CCW' });
+    imgs.push({ img, dir: s % 2 === 0 ? 'Right' : 'Left' });
   }
 
-  // 다 채워지면 각 이미지 서로 다른 방향으로 회전
+  // 다 채워지면 교대로 오른쪽/왼쪽 대각선 방향으로 흘러가기
   setTimeout(() => {
     imgs.forEach(({ img, dir }) => {
-      img.style.transition = 'none';
-      img.style.animation = `rotate${dir} ${dir === 'CW' ? 12 : 10}s linear infinite`;
+      img.style.animation = `pan${dir} 6s linear infinite`;
     });
   }, allDoneMs);
 })();
