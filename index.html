@@ -355,6 +355,30 @@
   </style>
 </head>
 <body>
+<!-- ── Start Overlay ── -->
+<div id="startOverlay" style="
+  position:fixed; inset:0; z-index:9999;
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 30%, #a1c4fd 70%, #c2e9fb 100%);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:20px; cursor:pointer; transition: opacity 0.3s;
+  font-family:'Nunito',sans-serif;
+">
+  <div style="font-size:clamp(4rem,20vw,7rem); line-height:1;">🐾</div>
+  <div style="font-family:'Fredoka One',cursive; font-size:clamp(1.6rem,6vw,2.4rem); color:#fff; text-shadow:0 3px 10px rgba(0,0,0,0.2);">동물 영어 단어장</div>
+  <div style="
+    background:rgba(255,255,255,0.9); border-radius:50px;
+    padding:16px 40px; font-size:clamp(1.1rem,4.5vw,1.4rem);
+    font-weight:900; color:#ff6b6b;
+    box-shadow:0 6px 24px rgba(255,107,107,0.3);
+    animation: pulse 1.4s ease-in-out infinite;
+  ">👆 탭해서 시작!</div>
+  <style>
+    @keyframes pulse {
+      0%,100% { transform:scale(1); box-shadow:0 6px 24px rgba(255,107,107,0.3); }
+      50%      { transform:scale(1.06); box-shadow:0 8px 30px rgba(255,107,107,0.5); }
+    }
+  </style>
+</div>
 
   <h1>🐾 동물 영어 단어장</h1>
 
@@ -867,7 +891,21 @@ function speakAgain() {
 // ─── Init ────────────────────────────────────────────────────────
 speechSynthesis.onvoiceschanged = () => {};
 preloadDay(1);
-showCard();
+
+// ─── Start Overlay (브라우저 오디오 잠금 해제) ───────────────────
+const startOverlay = document.getElementById('startOverlay');
+startOverlay.addEventListener('click', () => {
+  // 짧은 무음 재생으로 오디오 컨텍스트 잠금 해제
+  const u = new SpeechSynthesisUtterance(' ');
+  u.volume = 0;
+  speechSynthesis.speak(u);
+  speechSynthesis.cancel();
+
+  startOverlay.style.opacity = '0';
+  startOverlay.style.pointerEvents = 'none';
+  setTimeout(() => { startOverlay.style.display = 'none'; }, 300);
+  showCard();
+}, { once: true });
 </script>
 </body>
 </html>
