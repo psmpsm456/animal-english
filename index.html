@@ -364,10 +364,10 @@
   font-family:'Nunito',sans-serif;
   overflow:hidden;
 ">
-  <!-- 대각선 배경 이미지 그리드 -->
-  <div id="bgGrid" style="position:absolute;inset:0;pointer-events:none;"></div>
+  <!-- 대각선 스트립 배경 -->
+  <div id="bgGrid" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;"></div>
   <!-- 핑크 오버레이 -->
-  <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,91,176,0.55) 0%,rgba(255,142,200,0.45) 50%,rgba(255,240,245,0.4) 100%);pointer-events:none;"></div>
+  <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,91,176,0.5) 0%,rgba(255,142,200,0.4) 50%,rgba(255,240,245,0.35) 100%);pointer-events:none;"></div>
 
   <!-- 전면 콘텐츠 -->
   <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:20px;">
@@ -389,9 +389,9 @@
       0%,100% { transform:scale(1); box-shadow:0 6px 24px rgba(255,91,176,0.4); }
       50%      { transform:scale(1.06); box-shadow:0 10px 32px rgba(255,91,176,0.6); }
     }
-    @keyframes cellIn {
-      from { opacity:0; transform:scale(0.6) rotate(var(--r)); }
-      to   { opacity:1; transform:scale(1)   rotate(var(--r)); }
+    @keyframes stripIn {
+      from { opacity:0; transform: skewY(-18deg) translateY(30px); }
+      to   { opacity:1; transform: skewY(-18deg) translateY(0); }
     }
   </style>
 </div>
@@ -893,39 +893,51 @@ function speakAgain() {
 speechSynthesis.onvoiceschanged = () => {};
 preloadDay(1);
 
-// ─── 배경 대각선 이미지 그리드 ──────────────────────────────────
+// ─── 배경 대각선 스트립 ──────────────────────────────────────────
 (function buildBgGrid() {
   const grid = document.getElementById('bgGrid');
   const keys = Object.keys(LOCAL_IMAGES);
-  const COLS = 4, ROWS = 7, SIZE = Math.ceil(Math.max(screen.width, 390) / COLS);
-  const rotations = [-8,-4,0,4,8,-6,3,-3,6,-8,4];
+  const NUM_STRIPS = 7;
+  const IMG_H = 110;          // 각 이미지 높이(px)
+  const STRIP_H = IMG_H + 8;  // 스트립 높이
+  const SKEW = -18;           // 기울기 각도
+  // 스트립이 화면을 꽉 채우도록 top 계산
+  // 기울기로 인해 좌우로 삐져나오므로 left를 넓게
+  const W = Math.max(screen.width, 390);
+  const H = Math.max(screen.height, 700);
+  const totalH = H + 80;
+  const stepH  = totalH / (NUM_STRIPS - 0.5);
+
   let ki = 0;
-  const cells = [];
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      const diag = r + c; // diagonal index
-      const key  = keys[ki++ % keys.length];
-      const rot  = rotations[(r * COLS + c) % rotations.length];
-      const el   = document.createElement('div');
-      el.style.cssText = `
-        position:absolute;
-        left:${c * SIZE - SIZE * 0.1}px;
-        top:${r * SIZE - SIZE * 0.1}px;
-        width:${SIZE * 1.1}px; height:${SIZE * 1.1}px;
-        border-radius:18px;
-        overflow:hidden;
-        opacity:0;
-        --r:${rot}deg;
-        animation: cellIn 0.4s ease forwards;
-        animation-delay:${diag * 0.12}s;
-      `;
+  for (let s = 0; s < NUM_STRIPS; s++) {
+    const strip = document.createElement('div');
+    const topPx = s * stepH - 40;
+    strip.style.cssText = `
+      position:absolute;
+      left:-30%; top:${topPx}px;
+      width:160%; height:${STRIP_H}px;
+      display:flex; gap:6px; align-items:center;
+      transform-origin: left center;
+      opacity:0;
+      animation: stripIn 0.45s cubic-bezier(.22,.68,0,1.2) forwards;
+      animation-delay:${s * 0.18}s;
+    `;
+
+    // 각 스트립에 이미지 여러 개 채우기
+    const numImgs = Math.ceil((W * 1.6) / (IMG_H + 6)) + 1;
+    for (let i = 0; i < numImgs; i++) {
+      const key = keys[ki++ % keys.length];
       const img = document.createElement('img');
       img.src = LOCAL_IMAGES[key];
-      img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-      el.appendChild(img);
-      grid.appendChild(el);
-      cells.push(el);
+      img.style.cssText = `
+        flex-shrink:0;
+        width:${IMG_H}px; height:${IMG_H}px;
+        object-fit:cover;
+        border-radius:14px;
+      `;
+      strip.appendChild(img);
     }
+    grid.appendChild(strip);
   }
 })();
 
