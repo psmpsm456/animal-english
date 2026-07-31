@@ -358,26 +358,28 @@
 <!-- ── Start Overlay ── -->
 <div id="startOverlay" style="
   position:fixed; inset:0; z-index:9999;
-  background: #fff;
+  background: #111;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:20px; transition: opacity 0.3s;
+  transition: opacity 0.3s;
   font-family:'Nunito',sans-serif;
   overflow:hidden;
 ">
-  <!-- 대각선 스트립 배경 -->
+  <!-- 동물 사진 그리드 배경 -->
   <div id="bgGrid" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;"></div>
-  <!-- 텍스트 가독성용 중앙 그라데이션 -->
-  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center, rgba(255,255,255,0.35) 0%, transparent 70%);pointer-events:none;"></div>
+  <!-- 다크 오버레이 -->
+  <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.68) 100%);pointer-events:none;"></div>
 
   <!-- 전면 콘텐츠 -->
-  <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:20px;">
-    <div style="font-size:clamp(4rem,20vw,7rem); line-height:1;">🐾</div>
-    <div style="font-family:'Fredoka One',cursive; font-size:clamp(1.6rem,6vw,2.4rem); color:#fff; text-shadow:0 2px 12px rgba(0,0,0,0.6), 0 0 30px rgba(0,0,0,0.4);">Animal English</div>
+  <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;padding:0 24px;">
+    <div style="font-size:clamp(3.5rem,18vw,6rem); line-height:1; filter:drop-shadow(0 4px 14px rgba(0,0,0,0.6));">🐾</div>
+    <div style="font-family:'Fredoka One',cursive; font-size:clamp(1.8rem,7vw,2.8rem); color:#fff; text-shadow:0 2px 16px rgba(0,0,0,0.7);">Animal English</div>
+    <div style="color:rgba(255,255,255,0.6); font-size:clamp(0.7rem,2.8vw,0.9rem); letter-spacing:0.18em; font-weight:700;">100 ANIMALS · 5 DAYS</div>
     <div id="startBtn" style="
-      background:rgba(255,255,255,0.95); border-radius:50px;
-      padding:16px 40px; font-size:clamp(1.1rem,4.5vw,1.4rem);
+      margin-top:10px;
+      background:#fff; border-radius:50px;
+      padding:16px 44px; font-size:clamp(1.1rem,4.5vw,1.4rem);
       font-weight:900; color:#ff5bb0;
-      box-shadow:0 6px 24px rgba(0,0,0,0.3);
+      box-shadow:0 6px 28px rgba(0,0,0,0.45);
       animation: pulse 1.4s ease-in-out infinite;
       font-family:'Bubblegum Sans',cursive;
       cursor:pointer; user-select:none;
@@ -386,16 +388,17 @@
   </div>
   <style>
     @keyframes pulse {
-      0%,100% { transform:scale(1); box-shadow:0 6px 24px rgba(0,0,0,0.3); }
-      50%      { transform:scale(1.06); box-shadow:0 10px 32px rgba(0,0,0,0.4); }
+      0%,100% { transform:scale(1); box-shadow:0 6px 28px rgba(0,0,0,0.45); }
+      50%      { transform:scale(1.06); box-shadow:0 10px 36px rgba(0,0,0,0.55); }
     }
-    @keyframes stripIn {
-      from { transform: skewY(-18deg) translateX(-110%); }
-      to   { transform: skewY(-18deg) translateX(0); }
+    @keyframes gridCellIn {
+      from { opacity:0; transform:scale(1.06); }
+      to   { opacity:1; transform:scale(1); }
     }
-    @keyframes panRight { from { transform: translateX(0);    } to { transform: translateX(-50%); } }
-    @keyframes panLeft  { from { transform: translateX(-50%); } to { transform: translateX(0);    } }
-    .film-row { display:flex; width:max-content; will-change:transform; }
+    .grid-cell {
+      overflow:hidden;
+      animation: gridCellIn 0.5s ease-out both;
+    }
   </style>
 </div>
 
@@ -900,64 +903,45 @@ preloadDay(1);
 (function buildBgGrid() {
   const grid = document.getElementById('bgGrid');
   const keys = Object.keys(LOCAL_IMAGES);
-  const NUM_STRIPS = 8;
-  const IMG_SIZE = 110;       // 정사각형 이미지 크기
-  const GAP = 4;
+
+  const COLS = 4;
+  const GAP = 3;
+  const W = Math.max(screen.width, 390);
   const H = Math.max(screen.height, 700);
-  const STRIP_H = Math.round(H / NUM_STRIPS);
-  const DURATION = 0.3;       // 스트립 슬라이드인 속도
-  const allDoneMs = NUM_STRIPS * DURATION * 1000 + 150;
+  const cellW = Math.floor((W - GAP * (COLS - 1)) / COLS);
+  const ROWS = Math.ceil(H / cellW) + 1;
 
-  const rows = [];
+  grid.style.cssText = `
+    position:absolute; inset:0;
+    display:grid;
+    grid-template-columns: repeat(${COLS}, 1fr);
+    grid-template-rows: repeat(${ROWS}, 1fr);
+    gap:${GAP}px;
+    pointer-events:none;
+    overflow:hidden;
+  `;
 
-  for (let s = 0; s < NUM_STRIPS; s++) {
-    // 스트립 컨테이너
-    const strip = document.createElement('div');
-    strip.style.cssText = `
-      position:absolute;
-      left:-25%; top:${s * STRIP_H - 20}px;
-      width:150%; height:${STRIP_H - GAP}px;
-      overflow:hidden;
-      animation: stripIn ${DURATION}s cubic-bezier(0.16,1,0.3,1) both;
-      animation-delay:${s * DURATION}s;
+  const total = COLS * ROWS;
+  // 이미지 순서를 무작위로 섞기
+  const shuffled = [...keys].sort(() => Math.random() - 0.5);
+
+  for (let i = 0; i < total; i++) {
+    const key = shuffled[i % shuffled.length];
+    const cell = document.createElement('div');
+    cell.className = 'grid-cell';
+    // 순서대로 페이드인 (딜레이 분산)
+    cell.style.animationDelay = `${(i * 0.03).toFixed(2)}s`;
+
+    const img = document.createElement('img');
+    img.src = LOCAL_IMAGES[key];
+    img.style.cssText = `
+      width:100%; height:100%;
+      object-fit:cover; object-position:center;
+      display:block;
     `;
-
-    // 필름 행 (이미지 여러 장 × 2벌 = 끊김 없는 루프)
-    const row = document.createElement('div');
-    row.className = 'film-row';
-
-    // 몇 장이 필요한지 계산 (화면 너비 충분히 커버)
-    const screenW = Math.max(screen.width, 390);
-    const numImgs = Math.ceil((screenW * 1.6) / (IMG_SIZE + GAP)) + 2;
-    const startKey = (s * numImgs) % keys.length;
-
-    // 이미지 2벌 넣기 (seamless loop)
-    for (let repeat = 0; repeat < 2; repeat++) {
-      for (let i = 0; i < numImgs; i++) {
-        const key = keys[(startKey + i) % keys.length];
-        const img = document.createElement('img');
-        img.src = LOCAL_IMAGES[key];
-        img.style.cssText = `
-          width:${IMG_SIZE}px; height:${IMG_SIZE}px;
-          object-fit:cover; object-position:center top;
-          flex-shrink:0; margin-right:${GAP}px;
-          border-radius:10px;
-        `;
-        row.appendChild(img);
-      }
-    }
-
-    strip.appendChild(row);
-    grid.appendChild(strip);
-    rows.push({ row, dir: s % 2 === 0 ? 'Right' : 'Left' });
+    cell.appendChild(img);
+    grid.appendChild(cell);
   }
-
-  // 다 채워지면 교대로 오른쪽/왼쪽으로 흘러가기
-  setTimeout(() => {
-    rows.forEach(({ row, dir }) => {
-      row.style.animation = `pan${dir} 10s linear infinite`;
-    });
-  }, allDoneMs);
 })();
 
 // ─── Start Overlay (브라우저 오디오 잠금 해제) ───────────────────
