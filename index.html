@@ -364,8 +364,8 @@
   font-family:'Nunito',sans-serif;
   overflow:hidden;
 ">
-  <!-- 동물 사진 그리드 배경 -->
-  <div id="bgGrid" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;"></div>
+  <!-- 동물 사진 그리드 배경 (inset:-5% → 패닝 여백 확보) -->
+  <div id="bgGrid" style="position:absolute;inset:-5%;pointer-events:none;overflow:hidden;"></div>
   <!-- 다크 오버레이 -->
   <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.68) 100%);pointer-events:none;"></div>
 
@@ -377,23 +377,32 @@
     <div id="startBtn" style="
       margin-top:10px;
       background:#fff; border-radius:50px;
-      padding:16px 44px; font-size:clamp(1.1rem,4.5vw,1.4rem);
+      padding:20px 56px; font-size:clamp(1.2rem,5.2vw,1.6rem);
       font-weight:900; color:#111;
-      box-shadow:0 6px 28px rgba(0,0,0,0.45);
+      box-shadow:0 8px 36px rgba(0,0,0,0.55), 0 2px 0 rgba(0,0,0,0.08) inset;
       animation: pulse 1.4s ease-in-out infinite;
       font-family:'Bubblegum Sans',cursive;
       cursor:pointer; user-select:none;
       -webkit-tap-highlight-color: transparent;
-    ">👆 Tap to Start!</div>
+      letter-spacing:0.05em;
+      border: 2px solid rgba(0,0,0,0.06);
+    ">▶&nbsp; Tap to Start!</div>
   </div>
   <style>
     @keyframes pulse {
-      0%,100% { transform:scale(1); box-shadow:0 6px 28px rgba(0,0,0,0.45); }
-      50%      { transform:scale(1.06); box-shadow:0 10px 36px rgba(0,0,0,0.55); }
+      0%,100% { transform:scale(1); box-shadow:0 8px 36px rgba(0,0,0,0.55), 0 2px 0 rgba(0,0,0,0.08) inset; }
+      50%      { transform:scale(1.06); box-shadow:0 12px 44px rgba(0,0,0,0.65), 0 2px 0 rgba(0,0,0,0.08) inset; }
     }
     @keyframes gridCellIn {
       from { opacity:0; transform:scale(1.06); }
       to   { opacity:1; transform:scale(1); }
+    }
+    @keyframes gridDrift {
+      0%   { transform: translate(0%,    0%); }
+      25%  { transform: translate(-2.5%, -1.5%); }
+      50%  { transform: translate(-4%,   -2.5%); }
+      75%  { transform: translate(-1.5%, -3.5%); }
+      100% { transform: translate(0%,    0%); }
     }
     .grid-cell {
       overflow:hidden;
@@ -929,20 +938,37 @@ preloadDay(1);
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
+  // 이미지 전부 로드 완료 후 drift 시작
+  let loadedCount = 0;
+  let driftStarted = false;
+  const fallbackTimer = setTimeout(startDrift, 4000); // 최대 4초 대기
+  function startDrift() {
+    if (driftStarted) return;
+    driftStarted = true;
+    clearTimeout(fallbackTimer);
+    grid.style.animation = 'gridDrift 30s ease-in-out infinite';
+  }
+  function onImgLoad() {
+    if (++loadedCount >= total) setTimeout(startDrift, 400);
+  }
+
   for (let i = 0; i < total; i++) {
     const key = shuffled[i % shuffled.length];
     const cell = document.createElement('div');
     cell.className = 'grid-cell';
-    // 순서대로 페이드인 (딜레이 분산)
     cell.style.animationDelay = `${(i * 0.03).toFixed(2)}s`;
 
     const img = document.createElement('img');
-    img.src = LOCAL_IMAGES[key];
     img.style.cssText = `
       width:100%; height:100%;
       object-fit:cover; object-position:center;
       display:block;
     `;
+    img.addEventListener('load',  onImgLoad, {once: true});
+    img.addEventListener('error', onImgLoad, {once: true});
+    img.src = LOCAL_IMAGES[key];
+    if (img.complete) { img.removeEventListener('load', onImgLoad); onImgLoad(); }
+
     cell.appendChild(img);
     grid.appendChild(cell);
   }
