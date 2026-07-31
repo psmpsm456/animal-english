@@ -364,8 +364,8 @@
   font-family:'Nunito',sans-serif;
   overflow:hidden;
 ">
-  <!-- 동물 사진 그리드 배경 (inset:-5% → 패닝 여백 확보) -->
-  <div id="bgGrid" style="position:absolute;inset:-5%;pointer-events:none;overflow:hidden;"></div>
+  <!-- 동물 사진 행(row) 배경 -->
+  <div id="bgGrid" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;"></div>
   <!-- 다크 오버레이 -->
   <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.68) 100%);pointer-events:none;"></div>
 
@@ -393,20 +393,23 @@
       0%,100% { transform:scale(1); box-shadow:0 8px 36px rgba(0,0,0,0.55), 0 2px 0 rgba(0,0,0,0.08) inset; }
       50%      { transform:scale(1.06); box-shadow:0 12px 44px rgba(0,0,0,0.65), 0 2px 0 rgba(0,0,0,0.08) inset; }
     }
-    @keyframes gridCellIn {
-      from { opacity:0; transform:scale(1.06); }
-      to   { opacity:1; transform:scale(1); }
+    @keyframes rowFadeIn {
+      from { opacity:0; }
+      to   { opacity:1; }
     }
-    @keyframes gridDrift {
-      0%   { transform: translate(0%,    0%); }
-      25%  { transform: translate(-2.5%, -1.5%); }
-      50%  { transform: translate(-4%,   -2.5%); }
-      75%  { transform: translate(-1.5%, -3.5%); }
-      100% { transform: translate(0%,    0%); }
+    @keyframes panRowRight { from { transform: translateX(0);    } to { transform: translateX(-50%); } }
+    @keyframes panRowLeft  { from { transform: translateX(-50%); } to { transform: translateX(0);    } }
+    .grid-row-wrap {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      animation: rowFadeIn 0.7s ease-out both;
     }
-    .grid-cell {
-      overflow:hidden;
-      animation: gridCellIn 0.5s ease-out both;
+    .grid-row-inner {
+      display: flex;
+      flex-shrink: 0;
+      width: max-content;
+      will-change: transform;
     }
   </style>
 </div>
@@ -913,64 +916,84 @@ preloadDay(1);
   const grid = document.getElementById('bgGrid');
   const keys = Object.keys(LOCAL_IMAGES);
 
-  const COLS = 4;
+  const NUM_ROWS = 6;
   const GAP = 3;
   const W = Math.max(screen.width, 390);
   const H = Math.max(screen.height, 700);
-  const cellW = Math.floor((W - GAP * (COLS - 1)) / COLS);
-  const ROWS = Math.ceil(H / cellW) + 1;
+  const cellH = Math.floor((H - GAP * (NUM_ROWS - 1)) / NUM_ROWS);
+  // 한 방향당 이미지 수 (화면 너비 1.5배 커버 + 여유)
+  const numImgsHalf = Math.ceil((W * 1.6) / (cellH + GAP)) + 3;
 
   grid.style.cssText = `
     position:absolute; inset:0;
-    display:grid;
-    grid-template-columns: repeat(${COLS}, 1fr);
-    grid-template-rows: repeat(${ROWS}, 1fr);
+    display:flex; flex-direction:column;
     gap:${GAP}px;
     pointer-events:none;
     overflow:hidden;
   `;
 
-  const total = COLS * ROWS;
-  // Fisher-Yates 셔플 — 페이지 로드마다 새로운 순서
+  // Fisher-Yates 셔플
   const shuffled = [...keys];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
-  // 이미지 전부 로드 완료 후 drift 시작
   let loadedCount = 0;
+  const totalImgs = NUM_ROWS * numImgsHalf * 2;
   let driftStarted = false;
-  const fallbackTimer = setTimeout(startDrift, 4000); // 최대 4초 대기
+  const rowData = [];
+  const fallbackTimer = setTimeout(startDrift, 4000);
+
   function startDrift() {
     if (driftStarted) return;
     driftStarted = true;
     clearTimeout(fallbackTimer);
-    grid.style.animation = 'gridDrift 30s ease-in-out infinite';
+    rowData.forEach(({ inner, dir }, idx) => {
+      // 행마다 살짝 다른 속도 (18~30s)
+      const duration = 18 + idx * 2.5;
+      inner.style.animation = `panRow${dir} ${duration.toFixed(1)}s linear infinite`;
+    });
   }
+
   function onImgLoad() {
-    if (++loadedCount >= total) setTimeout(startDrift, 400);
+    if (++loadedCount >= totalImgs) setTimeout(startDrift, 400);
   }
 
-  for (let i = 0; i < total; i++) {
-    const key = shuffled[i % shuffled.length];
-    const cell = document.createElement('div');
-    cell.className = 'grid-cell';
-    cell.style.animationDelay = `${(i * 0.03).toFixed(2)}s`;
+  for (let r = 0; r < NUM_ROWS; r++) {
+    const wrap = document.createElement('div');
+    wrap.className = 'grid-row-wrap';
+    wrap.style.animationDelay = `${(r * 0.15).toFixed(2)}s`;
 
-    const img = document.createElement('img');
-    img.style.cssText = `
-      width:100%; height:100%;
-      object-fit:cover; object-position:center;
-      display:block;
-    `;
-    img.addEventListener('load',  onImgLoad, {once: true});
-    img.addEventListener('error', onImgLoad, {once: true});
-    img.src = LOCAL_IMAGES[key];
-    if (img.complete) { img.removeEventListener('load', onImgLoad); onImgLoad(); }
+    const inner = document.createElement('div');
+    inner.className = 'grid-row-inner';
+    const dir = r % 2 === 0 ? 'Right' : 'Left';
+    // Left 행은 시작 위치를 -50%로 맞춰 seamless loop
+    if (dir === 'Left') inner.style.transform = 'translateX(-50%)';
 
-    cell.appendChild(img);
-    grid.appendChild(cell);
+    const startIdx = (r * Math.ceil(numImgsHalf / 2)) % shuffled.length;
+
+    for (let repeat = 0; repeat < 2; repeat++) {
+      for (let i = 0; i < numImgsHalf; i++) {
+        const key = shuffled[(startIdx + i) % shuffled.length];
+        const img = document.createElement('img');
+        img.style.cssText = `
+          height:100%; aspect-ratio:1/1;
+          object-fit:cover; object-position:center;
+          display:block; flex-shrink:0;
+          margin-right:${GAP}px;
+        `;
+        img.addEventListener('load',  onImgLoad, {once: true});
+        img.addEventListener('error', onImgLoad, {once: true});
+        img.src = LOCAL_IMAGES[key];
+        if (img.complete) { img.removeEventListener('load', onImgLoad); onImgLoad(); }
+        inner.appendChild(img);
+      }
+    }
+
+    wrap.appendChild(inner);
+    grid.appendChild(wrap);
+    rowData.push({ inner, dir });
   }
 })();
 
