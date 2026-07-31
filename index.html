@@ -378,7 +378,7 @@
       margin-top:10px;
       background:#fff; border-radius:50px;
       padding:16px 44px; font-size:clamp(1.1rem,4.5vw,1.4rem);
-      font-weight:900; color:#ff5bb0;
+      font-weight:900; color:#111;
       box-shadow:0 6px 28px rgba(0,0,0,0.45);
       animation: pulse 1.4s ease-in-out infinite;
       font-family:'Bubblegum Sans',cursive;
@@ -922,8 +922,12 @@ preloadDay(1);
   `;
 
   const total = COLS * ROWS;
-  // 이미지 순서를 무작위로 섞기
-  const shuffled = [...keys].sort(() => Math.random() - 0.5);
+  // Fisher-Yates 셔플 — 페이지 로드마다 새로운 순서
+  const shuffled = [...keys];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
 
   for (let i = 0; i < total; i++) {
     const key = shuffled[i % shuffled.length];
