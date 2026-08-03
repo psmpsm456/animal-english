@@ -10,7 +10,7 @@
 
     body {
       font-family: 'Baloo 2', sans-serif;
-      background: linear-gradient(180deg, #8CE8F8 0%, #3DCAEA 35%, #1BB3D8 65%, #0096BE 100%);
+      background: linear-gradient(180deg, #FFFFFF 0%, #D6EEF8 30%, #A8D8EF 65%, #7DC3E8 100%);
       background-size: 100% 400%;
       animation: waveGrad 9s ease-in-out infinite alternate;
       min-height: 100vh;
@@ -25,7 +25,7 @@
     h1 {
       font-family: 'Bubblegum Sans', cursive;
       font-size: clamp(1.6rem, 6vw, 2.2rem);
-      color: #003F5C;
+      color: #2A6FA8;
       text-shadow: 0 2px 8px rgba(0,95,115,0.15);
       margin-bottom: 16px;
     }
@@ -48,7 +48,7 @@
       transition: background 0.2s;
       -webkit-tap-highlight-color: transparent;
     }
-    .auto-toggle.on { background: rgba(0,168,204,0.18); color: #007FA3; }
+    .auto-toggle.on { background: rgba(0,168,204,0.18); color: #4A9FC4; }
     .toggle-dot {
       width: 36px; height: 20px;
       background: #ccc;
@@ -66,7 +66,7 @@
       transition: left 0.3s;
       box-shadow: 0 1px 4px rgba(0,0,0,0.2);
     }
-    .auto-toggle.on .toggle-dot { background: #007FA3; }
+    .auto-toggle.on .toggle-dot { background: #4A9FC4; }
     .auto-toggle.on .toggle-dot::after { left: 19px; }
 
     /* ── Day Buttons ── */
@@ -93,7 +93,7 @@
       min-height: 44px;
     }
     .day-btn.active {
-      background: linear-gradient(135deg, #0096BE, #2BBFE0);
+      background: linear-gradient(135deg, #0096BE, #7DCAE8);
       color: #fff;
       transform: scale(1.08);
       box-shadow: 0 6px 18px rgba(0,168,204,0.5);
@@ -114,7 +114,7 @@
     .progress-label {
       font-size: 1rem;
       font-weight: 700;
-      color: #003F5C;
+      color: #2A6FA8;
     }
     .progress-bar-bg {
       width: min(280px, 80vw); height: 12px;
@@ -124,7 +124,7 @@
     }
     .progress-bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, #00A8CC, #5DCFED);
+      background: linear-gradient(90deg, #5AB4D8, #A8D8EF);
       border-radius: 6px;
       transition: width 0.5s ease;
     }
@@ -133,23 +133,34 @@
     .card {
       background: #fff;
       border-radius: 36px;
-      padding: 28px 24px 28px;
+      padding: 28px 24px 24px;
       text-align: center;
       width: min(340px, 92vw);
-      min-height: 460px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+      height: 480px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.13);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       position: relative;
       margin-bottom: 22px;
       overflow: hidden;
+    }
+    /* 카드 하단 고정 영역 */
+    .card-bottom {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     /* countdown number */
     #countdownNum {
       display: none;
+      position: absolute;
+      inset: 0;
       align-items: center;
       justify-content: center;
       font-family: 'Bubblegum Sans', cursive;
@@ -157,7 +168,6 @@
       font-weight: 900;
       color: #222;
       line-height: 1;
-      min-height: 60px;
     }
     @keyframes numPop {
       0%   { transform: scale(1.4); opacity: 0; }
@@ -234,7 +244,7 @@
       width: 44px;
       height: 44px;
       border: 5px solid rgba(0,151,167,0.2);
-      border-top-color: #00A8CC;
+      border-top-color: #5AB4D8;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -251,9 +261,12 @@
 
     /* ── Word area ── */
     .word-area {
+      position: absolute;
+      inset: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       gap: 4px;
       opacity: 0;
       transform: translateY(16px);
@@ -270,11 +283,11 @@
     .korean-word {
       font-family: 'Jua', sans-serif;
       font-size: clamp(1rem, 4vw, 1.2rem);
-      color: #00A8CC;
+      color: #5AB4D8;
     }
     .speak-btn {
       margin-top: 8px;
-      background: linear-gradient(135deg, #00A8CC, #2BBFE0);
+      background: linear-gradient(135deg, #5AB4D8, #7DCAE8);
       border: none;
       border-radius: 50%;
       width: 56px; height: 56px;
@@ -288,6 +301,11 @@
     .speak-btn:active { transform: scale(0.90); }
 
     .waiting {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
       font-size: 1rem;
       color: #bbb;
       font-weight: 700;
@@ -335,7 +353,7 @@
     .card-num {
       font-size: 1.3rem;
       font-weight: 900;
-      color: #003F5C;
+      color: #2A6FA8;
       min-width: 72px;
       text-align: center;
       margin-top: 8px;
@@ -365,17 +383,17 @@
 <div style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;">
   <div class="wave-layer" style="bottom:-10px;opacity:0.35;animation:waveMove 10s linear infinite;">
     <svg viewBox="0 0 1440 120" preserveAspectRatio="none" style="width:200%;height:120px;display:block;">
-      <path d="M0,60 C180,100 360,20 540,60 C720,100 900,20 1080,60 C1260,100 1440,20 1440,60 L1440,120 L0,120 Z" fill="#0076A8" fill-opacity="0.5"/>
+      <path d="M0,60 C180,100 360,20 540,60 C720,100 900,20 1080,60 C1260,100 1440,20 1440,60 L1440,120 L0,120 Z" fill="#4A9FC4" fill-opacity="0.35"/>
     </svg>
   </div>
   <div class="wave-layer" style="bottom:0;opacity:0.25;animation:waveMove 14s linear infinite reverse;">
     <svg viewBox="0 0 1440 120" preserveAspectRatio="none" style="width:200%;height:140px;display:block;">
-      <path d="M0,40 C200,90 400,10 600,50 C800,90 1000,15 1200,55 C1350,80 1440,30 1440,40 L1440,120 L0,120 Z" fill="#005F8A" fill-opacity="0.45"/>
+      <path d="M0,40 C200,90 400,10 600,50 C800,90 1000,15 1200,55 C1350,80 1440,30 1440,40 L1440,120 L0,120 Z" fill="#2A6FA8" fill-opacity="0.25"/>
     </svg>
   </div>
   <div class="wave-layer" style="top:0;opacity:0.15;animation:waveMove 18s linear infinite;">
     <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style="width:200%;height:80px;display:block;">
-      <path d="M0,40 C240,70 480,10 720,40 C960,70 1200,10 1440,40 L1440,0 L0,0 Z" fill="#B2F0FF" fill-opacity="0.6"/>
+      <path d="M0,40 C240,70 480,10 720,40 C960,70 1200,10 1440,40 L1440,0 L0,0 Z" fill="#FFFFFF" fill-opacity="0.5"/>
     </svg>
   </div>
 </div>
@@ -478,17 +496,20 @@
       <div class="img-spinner" id="imgSpinner"></div>
     </div>
 
-    <!-- Word (revealed after 3s) -->
-    <div class="word-area" id="wordArea">
-      <div class="english-word" id="engWord">Cat</div>
-      <div class="korean-word" id="korWord">고양이</div>
-      <button class="speak-btn" id="speakBtn" title="다시 듣기" onclick="speakAgain()">🔊</button>
-    </div>
-
-    <!-- 카운트다운 숫자 (●●● 자리) -->
-    <div id="countdownNum"></div>
-    <div class="waiting" id="waiting">
-      <span>●</span><span>●</span><span>●</span>
+    <!-- 하단 고정 영역: 카운트다운 / 점 / 단어 -->
+    <div class="card-bottom">
+      <!-- Word (revealed after 3s) -->
+      <div class="word-area" id="wordArea">
+        <div class="english-word" id="engWord">Cat</div>
+        <div class="korean-word" id="korWord">고양이</div>
+        <button class="speak-btn" id="speakBtn" title="다시 듣기" onclick="speakAgain()">🔊</button>
+      </div>
+      <!-- 카운트다운 숫자 -->
+      <div id="countdownNum"></div>
+      <!-- 대기 점 -->
+      <div class="waiting" id="waiting">
+        <span>●</span><span>●</span><span>●</span>
+      </div>
     </div>
   </div>
 
