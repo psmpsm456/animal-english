@@ -10,7 +10,7 @@
 
     body {
       font-family: 'Baloo 2', sans-serif;
-      background: #f0f0f0;
+      background: linear-gradient(160deg, #e0f7fa 0%, #b2ebf2 55%, #80deea 100%);
       min-height: 100vh;
       min-height: 100dvh;
       display: flex;
@@ -23,8 +23,8 @@
     h1 {
       font-family: 'Bubblegum Sans', cursive;
       font-size: clamp(1.6rem, 6vw, 2.2rem);
-      color: #111;
-      text-shadow: none;
+      color: #005f73;
+      text-shadow: 0 2px 8px rgba(0,95,115,0.15);
       margin-bottom: 16px;
     }
 
@@ -46,7 +46,7 @@
       transition: background 0.2s;
       -webkit-tap-highlight-color: transparent;
     }
-    .auto-toggle.on { background: rgba(0,0,0,0.07); color: #111; }
+    .auto-toggle.on { background: rgba(0,131,143,0.12); color: #00838f; }
     .toggle-dot {
       width: 36px; height: 20px;
       background: #ccc;
@@ -64,7 +64,7 @@
       transition: left 0.3s;
       box-shadow: 0 1px 4px rgba(0,0,0,0.2);
     }
-    .auto-toggle.on .toggle-dot { background: #111; }
+    .auto-toggle.on .toggle-dot { background: #00838f; }
     .auto-toggle.on .toggle-dot::after { left: 19px; }
 
     /* ── Day Buttons ── */
@@ -91,10 +91,10 @@
       min-height: 44px;
     }
     .day-btn.active {
-      background: #111;
+      background: linear-gradient(135deg, #0097a7, #00bcd4);
       color: #fff;
       transform: scale(1.08);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.22);
+      box-shadow: 0 6px 18px rgba(0,151,167,0.4);
     }
     .day-btn:hover:not(.active) {
       background: rgba(255,255,255,0.95);
@@ -112,7 +112,7 @@
     .progress-label {
       font-size: 1rem;
       font-weight: 700;
-      color: #444;
+      color: #005f73;
     }
     .progress-bar-bg {
       width: min(280px, 80vw); height: 12px;
@@ -122,7 +122,7 @@
     }
     .progress-bar-fill {
       height: 100%;
-      background: #222;
+      background: linear-gradient(90deg, #0097a7, #26c6da);
       border-radius: 6px;
       transition: width 0.5s ease;
     }
@@ -231,8 +231,8 @@
       content: '';
       width: 44px;
       height: 44px;
-      border: 5px solid rgba(0,0,0,0.1);
-      border-top-color: #333;
+      border: 5px solid rgba(0,151,167,0.2);
+      border-top-color: #0097a7;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -268,17 +268,17 @@
     .korean-word {
       font-family: 'Jua', sans-serif;
       font-size: clamp(1rem, 4vw, 1.2rem);
-      color: #666;
+      color: #0097a7;
     }
     .speak-btn {
       margin-top: 8px;
-      background: #111;
+      background: linear-gradient(135deg, #0097a7, #00bcd4);
       border: none;
       border-radius: 50%;
       width: 56px; height: 56px;
       font-size: 1.5rem;
       cursor: pointer;
-      box-shadow: 0 5px 14px rgba(0,0,0,0.22);
+      box-shadow: 0 5px 14px rgba(0,151,167,0.4);
       transition: transform 0.2s;
       -webkit-tap-highlight-color: transparent;
     }
@@ -322,16 +322,18 @@
     }
     .nav-btn:active:not(:disabled) { transform: scale(0.92); }
     .nav-btn:disabled { opacity:0.3; cursor:not-allowed; }
-    .pause-btn { font-size: 1.3rem; background: #111; color: #fff; }
+    .pause-btn { font-size: 2rem; background: #111; color: #fff; }
     .pause-btn:hover:not(:disabled) { background: #333; }
-    .pause-btn.paused { background: #fff; color: #111; border: 2px solid #ccc; }
+    .pause-btn.paused { background: #fff; color: #111; border: 2px solid #ccc; font-size: 2rem; }
 
     .card-num {
       font-size: 1.3rem;
       font-weight: 900;
-      color: #333;
+      color: #005f73;
       min-width: 72px;
       text-align: center;
+      margin-top: 8px;
+      display: block;
     }
 
     /* ── Done banner ── */
@@ -459,12 +461,10 @@
 
   <div class="nav-row">
     <button class="nav-btn" id="prevBtn" onclick="go(-1)">◀</button>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-      <button class="nav-btn pause-btn" id="pauseBtn" onclick="togglePause()">⏸</button>
-      <span class="card-num" id="cardNum">1 / 20</span>
-    </div>
+    <button class="nav-btn pause-btn" id="pauseBtn" onclick="togglePause()">⏸</button>
     <button class="nav-btn" id="nextBtn" onclick="go(1)">▶</button>
   </div>
+  <span class="card-num" id="cardNum">1 / 20</span>
 
   <div class="done-banner" id="doneBanner">
     🎉 잘했어요! 오늘 단어 모두 완료! 🎉<br>
