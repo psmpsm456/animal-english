@@ -10,9 +10,7 @@
 
     body {
       font-family: 'Baloo 2', sans-serif;
-      background: linear-gradient(180deg, #FFFFFF 0%, #D6EEF8 30%, #A8D8EF 65%, #7DC3E8 100%);
-      background-size: 100% 400%;
-      animation: waveGrad 9s ease-in-out infinite alternate;
+      background: transparent;
       min-height: 100vh;
       min-height: 100dvh;
       display: flex;
@@ -379,28 +377,67 @@
   </style>
 </head>
 <body>
-<!-- 파도 배경 레이어 -->
-<div style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;">
-  <div class="wave-layer" style="bottom:-10px;opacity:0.35;animation:waveMove 10s linear infinite;">
-    <svg viewBox="0 0 1440 120" preserveAspectRatio="none" style="width:200%;height:120px;display:block;">
-      <path d="M0,60 C180,100 360,20 540,60 C720,100 900,20 1080,60 C1260,100 1440,20 1440,60 L1440,120 L0,120 Z" fill="#4A9FC4" fill-opacity="0.35"/>
-    </svg>
-  </div>
-  <div class="wave-layer" style="bottom:0;opacity:0.25;animation:waveMove 14s linear infinite reverse;">
-    <svg viewBox="0 0 1440 120" preserveAspectRatio="none" style="width:200%;height:140px;display:block;">
-      <path d="M0,40 C200,90 400,10 600,50 C800,90 1000,15 1200,55 C1350,80 1440,30 1440,40 L1440,120 L0,120 Z" fill="#2A6FA8" fill-opacity="0.25"/>
-    </svg>
-  </div>
-  <div class="wave-layer" style="top:0;opacity:0.15;animation:waveMove 18s linear infinite;">
-    <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style="width:200%;height:80px;display:block;">
-      <path d="M0,40 C240,70 480,10 720,40 C960,70 1200,10 1440,40 L1440,0 L0,0 Z" fill="#FFFFFF" fill-opacity="0.5"/>
-    </svg>
-  </div>
+<!-- 얼음 배경 레이어 -->
+<div style="position:fixed;inset:0;pointer-events:none;z-index:0;">
+  <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" style="position:absolute;inset:0;">
+    <defs>
+      <radialGradient id="iceMain" cx="50%" cy="10%" r="80%">
+        <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="1"/>
+        <stop offset="35%"  stop-color="#D8EFFB" stop-opacity="1"/>
+        <stop offset="65%"  stop-color="#9DD0EC" stop-opacity="1"/>
+        <stop offset="100%" stop-color="#5AAED4" stop-opacity="1"/>
+      </radialGradient>
+      <radialGradient id="iceGlare1" cx="25%" cy="35%" r="35%">
+        <stop offset="0%"  stop-color="#FFFFFF" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="iceGlare2" cx="78%" cy="60%" r="28%">
+        <stop offset="0%"  stop-color="#FFFFFF" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="iceGlare3" cx="55%" cy="85%" r="40%">
+        <stop offset="0%"  stop-color="#C5E8F8" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#5AAED4" stop-opacity="0"/>
+      </radialGradient>
+      <!-- 얼음 균열 느낌 필터 -->
+      <filter id="iceFrost" x="-5%" y="-5%" width="110%" height="110%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" seed="8" result="noise"/>
+        <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise"/>
+        <feBlend in="SourceGraphic" in2="grayNoise" mode="screen" result="blended"/>
+        <feComponentTransfer in="blended">
+          <feFuncA type="linear" slope="1"/>
+        </feComponentTransfer>
+      </filter>
+    </defs>
+    <!-- 베이스 그라디언트 -->
+    <rect width="100%" height="100%" fill="url(#iceMain)"/>
+    <!-- 얼음 결정 텍스처 레이어 -->
+    <rect width="100%" height="100%" fill="transparent" filter="url(#iceFrost)" opacity="0.06"/>
+    <!-- 광택 반사 -->
+    <rect width="100%" height="100%" fill="url(#iceGlare1)"/>
+    <rect width="100%" height="100%" fill="url(#iceGlare2)"/>
+    <rect width="100%" height="100%" fill="url(#iceGlare3)"/>
+    <!-- 상단 밝은 하이라이트 -->
+    <ellipse cx="50%" cy="-5%" rx="60%" ry="40%" fill="#FFFFFF" opacity="0.45"/>
+    <!-- 가는 얼음 균열선들 -->
+    <g stroke="#FFFFFF" stroke-opacity="0.25" fill="none">
+      <path d="M120,80 L180,160 L140,240 M180,160 L230,200"/>
+      <path d="M80,300 L150,380 L120,460 M150,380 L200,350"/>
+      <path d="M320,20 L360,90 L400,60 M360,90 L330,140"/>
+      <path d="M500,200 L560,280 L520,360 M560,280 L610,260"/>
+      <path d="M700,50 L740,130 L780,100 M740,130 L710,200"/>
+      <path d="M900,150 L950,230 L920,310 M950,230 L1000,210"/>
+      <path d="M1100,80 L1150,160 L1180,130 M1150,160 L1120,240"/>
+      <path d="M200,500 L260,580 L230,660 M260,580 L310,560"/>
+      <path d="M600,450 L650,530 L680,500 M650,530 L620,610"/>
+      <path d="M1050,400 L1100,480 L1070,560 M1100,480 L1150,460"/>
+      <path d="M400,700 L450,780 L480,750 M450,780 L420,860"/>
+      <path d="M850,600 L900,680 L930,650 M900,680 L870,760"/>
+    </g>
+    <!-- 하단 깊은 블루 -->
+    <rect x="0" y="70%" width="100%" height="30%" fill="url(#iceGlare3)" opacity="0.4"/>
+  </svg>
 </div>
-<style>
-  .wave-layer { position:absolute; left:0; width:100%; }
-  @keyframes waveMove { from{transform:translateX(0);} to{transform:translateX(-50%);} }
-</style>
 <!-- ── Start Overlay ── -->
 <div id="startOverlay" style="
   position:fixed; inset:0; z-index:9999;
@@ -435,10 +472,6 @@
     ">▶&nbsp; Tap to Start!</div>
   </div>
   <style>
-    @keyframes waveGrad {
-      0%   { background-position: 0% 0%; }
-      100% { background-position: 0% 100%; }
-    }
     @keyframes pulse {
       0%,100% { transform:scale(1); box-shadow:0 8px 36px rgba(0,0,0,0.55), 0 2px 0 rgba(0,0,0,0.08) inset; }
       50%      { transform:scale(1.06); box-shadow:0 12px 44px rgba(0,0,0,0.65), 0 2px 0 rgba(0,0,0,0.08) inset; }
