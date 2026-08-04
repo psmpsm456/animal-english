@@ -1032,22 +1032,41 @@ function cancelAdvance() {
 }
 
 // ─── TTS ─────────────────────────────────────────────────────────
+// 발음 보정 사전 (en-US에서도 틀리기 쉬운 단어들)
+const PRONOUNCE = {
+  'Dove':       'Duv',        // /dʌv/ — 도브가 아닌 "더브"
+  'Sloth':      'Slawth',     // /slɑːθ/ — ㅗ 아닌 ㅓ/ㅏ 중간
+  'Zebra':      'Zeebra',     // 미국식 ZEE-bra
+  'Squirrel':   'Skwirl',     // r 발음 강조
+  'Owl':        'Owwl',       // /aʊl/ 이중모음 강조
+  'Duck':       'Duhk',       // /dʌk/ — 영국식 deck 방지
+  'Tiger':      'Ty-ger',     // 미국식 r 살리기
+  'Horse':      'Horrs',      // 강한 r 발음
+  'Shark':      'Sharrk',     // 강한 r 발음
+};
+
 function speakWithCallback(word, onEnd) {
   if (!window.speechSynthesis) { onEnd?.(); return; }
   speechSynthesis.cancel();
 
-  const u = new SpeechSynthesisUtterance(word);
+  const spokenWord = PRONOUNCE[word] || word;
+  const u = new SpeechSynthesisUtterance(spokenWord);
   u.lang  = 'en-US';
   u.rate  = 0.78;
   u.pitch = 1.15;
 
   const voices = speechSynthesis.getVoices();
-  const nice = voices.find(v => v.lang.startsWith('en') && /samantha|karen|moira|tessa|victoria/i.test(v.name))
-            || voices.find(v => v.lang.startsWith('en'));
+  // 미국 영어 목소리 우선 선택 (영국/호주/아일랜드 제외)
+  const nice =
+    voices.find(v => v.lang === 'en-US' && /samantha|alex|zira|david|google us/i.test(v.name)) ||
+    voices.find(v => v.lang === 'en-US') ||
+    voices.find(v => v.lang.startsWith('en-US')) ||
+    voices.find(v => v.lang.startsWith('en') && !/karen|moira|tessa|victoria|daniel|serena/i.test(v.name)) ||
+    voices.find(v => v.lang.startsWith('en'));
   if (nice) u.voice = nice;
 
   u.onend   = onEnd;
-  u.onerror = onEnd; // still advance on error
+  u.onerror = onEnd;
   speechSynthesis.speak(u);
 }
 
