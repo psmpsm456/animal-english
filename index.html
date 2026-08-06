@@ -385,8 +385,6 @@
     gtag('js', new Date());
     gtag('config', 'G-EJERJTP1SL');
   </script>
-  <!-- ResponsiveVoice TTS: 미국식 여자 목소리 -->
-  <script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE"></script>
 </head>
 <body>
 <!-- 얼음 배경 레이어 -->
@@ -1015,8 +1013,7 @@ function togglePause() {
     clearTimeout(revealTimer);
     clearTimeout(advTimer);
     advanceRing.style.display = 'none';
-    speechSynthesis.cancel();
-    if (window.responsiveVoice) responsiveVoice.cancel();
+    cancelTTS();
   } else {
     // 재개
     if (pausedAfterReveal) {
@@ -1040,8 +1037,7 @@ function cancelTimers() {
   clearTimeout(advTimer);
   clearInterval(cdInterval);
   countdownNumEl.style.display = 'none';
-  speechSynthesis.cancel();
-  if (window.responsiveVoice) responsiveVoice.cancel();
+  cancelTTS();
   advanceRing.style.display = 'none';
 }
 
@@ -1058,40 +1054,26 @@ const PRONOUNCE = {
   'Crane': 'Krayn',    // /kreɪn/ — "크레인"
 };
 
-function speakWithCallback(word, onEnd) {
-  const spokenWord = PRONOUNCE[word] || word;
-
-  // ResponsiveVoice 사용 (미국식 여자 목소리)
-  if (window.responsiveVoice) {
-    if (window.speechSynthesis) speechSynthesis.cancel();
-    responsiveVoice.cancel();
-    responsiveVoice.speak(spokenWord, 'US English Female', {
-      rate:       0.85,
-      pitch:      1.1,
-      volume:     1,
-      onend:      onEnd,
-      onerror:    onEnd,
-      fallbackDisabled: true   // 브라우저 기본 TTS fallback 차단
-    });
-    return;
+// ─── TTS: Google Translate (무료, 기기 무관 동일 목소리) ───────────
+function cancelTTS() {
+  if (window._ttsAudio) {
+    window._ttsAudio.pause();
+    window._ttsAudio.src = '';
+    window._ttsAudio = null;
   }
+}
 
-  // fallback: Web Speech API
-  if (!window.speechSynthesis) { onEnd?.(); return; }
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(spokenWord);
-  u.lang  = 'en-US';
-  u.rate  = 0.78;
-  u.pitch = 1.15;
-  const voices = speechSynthesis.getVoices();
-  const nice =
-    voices.find(v => v.lang === 'en-US' && /samantha|alex|zira|david/i.test(v.name)) ||
-    voices.find(v => v.lang === 'en-US') ||
-    voices.find(v => v.lang.startsWith('en'));
-  if (nice) u.voice = nice;
-  u.onend   = onEnd;
-  u.onerror = onEnd;
-  speechSynthesis.speak(u);
+function speakWithCallback(word, onEnd) {
+  cancelTTS();
+  const spokenWord = PRONOUNCE[word] || word;
+  const url = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=en-US&client=tw-ob&q='
+              + encodeURIComponent(spokenWord);
+  const audio = new Audio(url);
+  audio.playbackRate = 0.88;
+  window._ttsAudio = audio;
+  audio.onended = () => { window._ttsAudio = null; onEnd?.(); };
+  audio.onerror = () => { window._ttsAudio = null; onEnd?.(); };
+  audio.play().catch(() => { window._ttsAudio = null; onEnd?.(); });
 }
 
 function speakAgain() {
@@ -1206,7 +1188,6 @@ document.getElementById('startBtn').addEventListener('click', () => {
   u.volume = 0;
   speechSynthesis.speak(u);
   speechSynthesis.cancel();
-  if (window.responsiveVoice) responsiveVoice.cancel();
 
   startOverlay.style.opacity = '0';
   startOverlay.style.pointerEvents = 'none';
