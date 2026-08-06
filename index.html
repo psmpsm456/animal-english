@@ -382,6 +382,7 @@
     }
   </style>
   <!-- Google Analytics -->
+  <script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EJERJTP1SL"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -1054,26 +1055,32 @@ function cancelAdvance() {
 // 발음 보정 사전 (en-US에서도 틀리기 쉬운 단어들)
 const PRONOUNCE = {};  // Google Translate가 원문 그대로 정확히 발음
 
-// ─── TTS: StreamElements (무료, CORS 허용, 기기 무관 동일 목소리) ──
+// ─── TTS: ResponsiveVoice ─────────────────────────────────────────
 function cancelTTS() {
-  if (window._ttsAudio) {
-    window._ttsAudio.pause();
-    window._ttsAudio.src = '';
-    window._ttsAudio = null;
-  }
+  if (window.responsiveVoice) responsiveVoice.cancel();
 }
 
 function speakWithCallback(word, onEnd) {
   cancelTTS();
   const spokenWord = PRONOUNCE[word] || word;
-  const url = 'https://api.streamelements.com/kappa/v2/speech?voice=Amy&text='
-              + encodeURIComponent(spokenWord);
-  const audio = new Audio(url);
-  audio.playbackRate = 0.9;
-  window._ttsAudio = audio;
-  audio.onended = () => { window._ttsAudio = null; onEnd?.(); };
-  audio.onerror = () => { window._ttsAudio = null; onEnd?.(); };
-  audio.play().catch(() => { window._ttsAudio = null; onEnd?.(); });
+  if (window.responsiveVoice && responsiveVoice.voiceSupport()) {
+    responsiveVoice.speak(spokenWord, 'US English Female', {
+      rate: 0.85, pitch: 1.1, volume: 1,
+      onend: onEnd, onerror: onEnd
+    });
+    return;
+  }
+  // fallback: Web Speech API
+  if (!window.speechSynthesis) { onEnd?.(); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(spokenWord);
+  u.lang = 'en-US'; u.rate = 0.85; u.pitch = 1.1;
+  const v = speechSynthesis.getVoices();
+  const nice = v.find(x => x.lang==='en-US' && /samantha|zira|david/i.test(x.name))
+            || v.find(x => x.lang==='en-US');
+  if (nice) u.voice = nice;
+  u.onend = onEnd; u.onerror = onEnd;
+  speechSynthesis.speak(u);
 }
 
 function speakAgain() {
@@ -1189,7 +1196,14 @@ function goHome() {
   isPaused = false;
   document.getElementById('pauseBtn').textContent = '⏸';
   document.getElementById('pauseBtn').classList.remove('paused');
-  window._homeReady = true; // startBtn 클릭 허용 플래그
+  // 카드 위치 처음으로 초기화
+  currentDay = 1;
+  currentIdx = 0;
+  document.querySelectorAll('.day-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === 0);
+  });
+  if (typeof doneBanner !== 'undefined') doneBanner.style.display = 'none';
+  window._homeReady = true;
   const overlay = document.getElementById('startOverlay');
   overlay.style.display = 'flex';
   overlay.style.pointerEvents = 'auto';
