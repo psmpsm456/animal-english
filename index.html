@@ -1052,11 +1052,7 @@ function cancelAdvance() {
 
 // ─── TTS ─────────────────────────────────────────────────────────
 // 발음 보정 사전 (en-US에서도 틀리기 쉬운 단어들)
-const PRONOUNCE = {
-  'Gecko': 'Geck oh',  // 공백으로 분리 → hard G 강제
-  'Wolf':  'Wuulf',    // /wʊlf/ — 짧은 oo 계열
-  'Crane': 'Krayn',    // /kreɪn/ — "크레인"
-};
+const PRONOUNCE = {};  // Google Translate가 원문 그대로 정확히 발음
 
 // ─── TTS: Google Translate (무료, 기기 무관 동일 목소리) ───────────
 function cancelTTS() {
@@ -1191,28 +1187,26 @@ function goHome() {
   clearTimeout(revealTimer);
   clearTimeout(advTimer);
   isPaused = false;
-  pauseBtn.textContent = '⏸';
-  pauseBtn.classList.remove('paused');
+  document.getElementById('pauseBtn').textContent = '⏸';
+  document.getElementById('pauseBtn').classList.remove('paused');
+
   const overlay = document.getElementById('startOverlay');
   overlay.style.display = 'flex';
-  overlay.style.opacity = '0';
-  requestAnimationFrame(() => {
-    overlay.style.transition = 'opacity 0.3s';
-    overlay.style.opacity = '1';
-    overlay.style.pointerEvents = 'auto';
-  });
-  // Start 버튼 다시 클릭 가능하게
+  overlay.style.pointerEvents = 'auto';
+  overlay.style.transition = 'none';
+  overlay.style.opacity = '1';
+
+  // Start 버튼 재등록
   const startBtn = document.getElementById('startBtn');
-  startBtn.onclick = () => {
-    const u = new SpeechSynthesisUtterance(' ');
-    u.volume = 0;
-    speechSynthesis.speak(u);
-    speechSynthesis.cancel();
+  const newBtn = startBtn.cloneNode(true); // 기존 이벤트 완전 제거
+  startBtn.parentNode.replaceChild(newBtn, startBtn);
+  newBtn.addEventListener('click', () => {
+    overlay.style.transition = 'opacity 0.3s';
     overlay.style.opacity = '0';
     overlay.style.pointerEvents = 'none';
     setTimeout(() => { overlay.style.display = 'none'; }, 300);
     showCard();
-  };
+  }, { once: true });
 }
 
 // ─── Start Overlay (브라우저 오디오 잠금 해제) ───────────────────
