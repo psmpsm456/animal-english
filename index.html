@@ -1054,7 +1054,7 @@ function cancelAdvance() {
 // 발음 보정 사전 (en-US에서도 틀리기 쉬운 단어들)
 const PRONOUNCE = {};  // Google Translate가 원문 그대로 정확히 발음
 
-// ─── TTS: Google Translate (무료, 기기 무관 동일 목소리) ───────────
+// ─── TTS: StreamElements (무료, CORS 허용, 기기 무관 동일 목소리) ──
 function cancelTTS() {
   if (window._ttsAudio) {
     window._ttsAudio.pause();
@@ -1066,10 +1066,10 @@ function cancelTTS() {
 function speakWithCallback(word, onEnd) {
   cancelTTS();
   const spokenWord = PRONOUNCE[word] || word;
-  const url = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=en-US&client=tw-ob&q='
+  const url = 'https://api.streamelements.com/kappa/v2/speech?voice=Amy&text='
               + encodeURIComponent(spokenWord);
   const audio = new Audio(url);
-  audio.playbackRate = 0.88;
+  audio.playbackRate = 0.9;
   window._ttsAudio = audio;
   audio.onended = () => { window._ttsAudio = null; onEnd?.(); };
   audio.onerror = () => { window._ttsAudio = null; onEnd?.(); };
@@ -1189,40 +1189,22 @@ function goHome() {
   isPaused = false;
   document.getElementById('pauseBtn').textContent = '⏸';
   document.getElementById('pauseBtn').classList.remove('paused');
-
+  window._homeReady = true; // startBtn 클릭 허용 플래그
   const overlay = document.getElementById('startOverlay');
   overlay.style.display = 'flex';
   overlay.style.pointerEvents = 'auto';
-  overlay.style.transition = 'none';
   overlay.style.opacity = '1';
-
-  // Start 버튼 재등록
-  const startBtn = document.getElementById('startBtn');
-  const newBtn = startBtn.cloneNode(true); // 기존 이벤트 완전 제거
-  startBtn.parentNode.replaceChild(newBtn, startBtn);
-  newBtn.addEventListener('click', () => {
-    overlay.style.transition = 'opacity 0.3s';
-    overlay.style.opacity = '0';
-    overlay.style.pointerEvents = 'none';
-    setTimeout(() => { overlay.style.display = 'none'; }, 300);
-    showCard();
-  }, { once: true });
 }
 
-// ─── Start Overlay (브라우저 오디오 잠금 해제) ───────────────────
+// ─── Start Overlay ────────────────────────────────────────────────
 const startOverlay = document.getElementById('startOverlay');
 document.getElementById('startBtn').addEventListener('click', () => {
-  // 짧은 무음 재생으로 오디오 컨텍스트 잠금 해제
-  const u = new SpeechSynthesisUtterance(' ');
-  u.volume = 0;
-  speechSynthesis.speak(u);
-  speechSynthesis.cancel();
-
+  startOverlay.style.transition = 'opacity 0.3s';
   startOverlay.style.opacity = '0';
   startOverlay.style.pointerEvents = 'none';
   setTimeout(() => { startOverlay.style.display = 'none'; }, 300);
   showCard();
-}, { once: true });
+});
 </script>
   </div><!-- /z-index wrapper -->
 </body>
