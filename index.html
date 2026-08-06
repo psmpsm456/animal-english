@@ -1052,7 +1052,11 @@ function cancelAdvance() {
 
 // ─── TTS ─────────────────────────────────────────────────────────
 // 발음 보정 사전 (en-US에서도 틀리기 쉬운 단어들)
-const PRONOUNCE = {};
+const PRONOUNCE = {
+  'Gecko': 'Gehkoh',   // 硬 G — "게코" (/ˈɡɛkoʊ/)
+  'Wolf':  'Wulf',     // /wʊlf/
+  'Crane': 'Krayn',    // /kreɪn/ — "크레인"
+};
 
 function speakWithCallback(word, onEnd) {
   const spokenWord = PRONOUNCE[word] || word;
