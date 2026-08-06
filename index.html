@@ -32,40 +32,42 @@
     .auto-toggle {
       display: flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(255,255,255,0.75);
+      gap: 10px;
+      background: rgba(255,255,255,0.88);
       border-radius: 30px;
-      padding: 10px 20px;
+      padding: 12px 22px;
       margin-bottom: 14px;
       cursor: pointer;
       font-weight: 800;
-      font-size: clamp(0.85rem, 3.5vw, 0.95rem);
-      color: #555;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      font-size: clamp(0.92rem, 3.8vw, 1.05rem);
+      color: #666;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.12);
       user-select: none;
-      transition: background 0.2s;
+      transition: background 0.25s, color 0.25s;
       -webkit-tap-highlight-color: transparent;
+      letter-spacing: 0.01em;
     }
-    .auto-toggle.on { background: rgba(0,168,204,0.18); color: #4A9FC4; }
+    .auto-toggle.on { background: rgba(0,168,204,0.15); color: #0088B0; }
     .toggle-dot {
-      width: 36px; height: 20px;
+      width: 44px; height: 24px;
       background: #ccc;
-      border-radius: 10px;
+      border-radius: 12px;
       position: relative;
+      flex-shrink: 0;
       transition: background 0.3s;
     }
     .toggle-dot::after {
       content:'';
       position: absolute;
-      width: 14px; height: 14px;
+      width: 18px; height: 18px;
       background: #fff;
       border-radius: 50%;
       top: 3px; left: 3px;
       transition: left 0.3s;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
     }
-    .auto-toggle.on .toggle-dot { background: #4A9FC4; }
-    .auto-toggle.on .toggle-dot::after { left: 19px; }
+    .auto-toggle.on .toggle-dot { background: #00A8CC; }
+    .auto-toggle.on .toggle-dot::after { left: 23px; }
 
     /* ── Day Buttons ── */
     .day-buttons {
@@ -344,9 +346,9 @@
     }
     .nav-btn:active:not(:disabled) { transform: scale(0.92); }
     .nav-btn:disabled { opacity:0.3; cursor:not-allowed; }
-    .pause-btn { font-size: 1.5rem; background: #111; color: #fff; width: 64px !important; height: 64px !important; min-width: 64px; max-width: 64px; min-height: 64px; max-height: 64px; }
+    .pause-btn { font-size: 1.5rem; background: #111; color: #fff; width: 64px !important; height: 64px !important; min-width: 64px !important; max-width: 64px !important; min-height: 64px !important; max-height: 64px !important; box-sizing: border-box !important; }
     .pause-btn:hover:not(:disabled) { background: #333; }
-    .pause-btn.paused { background: #fff; color: #111; border: none; font-size: 1.5rem; box-shadow: 0 6px 18px rgba(0,0,0,0.14); }
+    .pause-btn.paused { background: #fff; color: #111; border: none; font-size: 1.5rem; box-shadow: 0 6px 18px rgba(0,0,0,0.14); width: 64px !important; height: 64px !important; min-width: 64px !important; max-width: 64px !important; min-height: 64px !important; max-height: 64px !important; }
 
     .card-num {
       font-size: 1.3rem;
@@ -375,6 +377,14 @@
       text-align: center;
     }
   </style>
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
   <!-- ResponsiveVoice TTS: 미국식 여자 목소리 -->
   <script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE"></script>
 </head>
@@ -576,6 +586,11 @@
     🎉 잘했어요! 오늘 단어 모두 완료! 🎉<br>
     <span style="font-size:0.9rem;color:#888;font-weight:600">다음 날짜로 넘어가 봐요!</span>
   </div>
+
+  <footer style="text-align:center; padding: 28px 16px 20px; position:relative; z-index:1;">
+    <div style="font-family:'Baloo 2',sans-serif; font-size:1.05rem; font-weight:900; color:#2A6FA8; letter-spacing:0.04em;">헬렌잉글리쉬</div>
+    <div style="font-size:0.72rem; color:#aaa; margin-top:6px; font-weight:500; letter-spacing:0.02em;">본 강의자료의 무단 복제 및 배포는 금지합니다</div>
+  </footer>
 
 <script>
 // ─── Animal Data ────────────────────────────────────────────────
