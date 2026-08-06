@@ -26,7 +26,11 @@
       color: #2A6FA8;
       text-shadow: 0 2px 8px rgba(0,95,115,0.15);
       margin-bottom: 16px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
+    h1:active { opacity: 0.7; }
 
     /* ── Auto toggle ── */
     .auto-toggle {
@@ -525,7 +529,7 @@
 </div>
 
   <div style="position:relative;z-index:1;width:100%;display:flex;flex-direction:column;align-items:center;">
-  <h1>🐾 Animal English</h1>
+  <h1 onclick="goHome()" title="처음으로">🐾 Animal English</h1>
 
   <!-- Auto-advance toggle -->
   <div class="auto-toggle on" id="autoToggle" onclick="toggleAuto()">
@@ -1179,6 +1183,37 @@ preloadDay(1);
     rowData.push({ inner, dir });
   }
 })();
+
+// ─── 홈(시작화면)으로 돌아가기 ───────────────────────────────────
+function goHome() {
+  cancelTTS();
+  clearInterval(cdInterval);
+  clearTimeout(revealTimer);
+  clearTimeout(advTimer);
+  isPaused = false;
+  pauseBtn.textContent = '⏸';
+  pauseBtn.classList.remove('paused');
+  const overlay = document.getElementById('startOverlay');
+  overlay.style.display = 'flex';
+  overlay.style.opacity = '0';
+  requestAnimationFrame(() => {
+    overlay.style.transition = 'opacity 0.3s';
+    overlay.style.opacity = '1';
+    overlay.style.pointerEvents = 'auto';
+  });
+  // Start 버튼 다시 클릭 가능하게
+  const startBtn = document.getElementById('startBtn');
+  startBtn.onclick = () => {
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    speechSynthesis.speak(u);
+    speechSynthesis.cancel();
+    overlay.style.opacity = '0';
+    overlay.style.pointerEvents = 'none';
+    setTimeout(() => { overlay.style.display = 'none'; }, 300);
+    showCard();
+  };
+}
 
 // ─── Start Overlay (브라우저 오디오 잠금 해제) ───────────────────
 const startOverlay = document.getElementById('startOverlay');
