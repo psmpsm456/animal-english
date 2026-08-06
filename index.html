@@ -1037,9 +1037,7 @@ function cancelAdvance() {
 
 // ─── TTS ─────────────────────────────────────────────────────────
 // 발음 보정 사전 (en-US에서도 틀리기 쉬운 단어들)
-const PRONOUNCE = {
-  'Dove': 'Duv',  // "Dove"는 TTS가 /doʊv/로 읽는 경우 있어 /dʌv/ 강제
-};
+const PRONOUNCE = {};
 
 function speakWithCallback(word, onEnd) {
   const spokenWord = PRONOUNCE[word] || word;
