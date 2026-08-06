@@ -382,7 +382,6 @@
     }
   </style>
   <!-- Google Analytics -->
-  <script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EJERJTP1SL"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -1052,52 +1051,67 @@ function cancelAdvance() {
 }
 
 // ─── TTS ─────────────────────────────────────────────────────────
-// 발음 보정 사전 (en-US에서도 틀리기 쉬운 단어들)
-const PRONOUNCE = {};  // Google Translate가 원문 그대로 정확히 발음
+// 발음 보정 사전
+const PRONOUNCE = {
+  'Gecko':  'GEK oh',
+  'Wolf':   'Wulf',
+  'Crane':  'Krayn',
+  'Owl':    'Owwl',
+  'Dove':   'Duv',
+  'Iguana': 'ih GWAH nuh',
+};
 
-// ─── TTS: ResponsiveVoice ─────────────────────────────────────────
+// ─── TTS: Web Speech API ──────────────────────────────────────────
+let _cachedVoice = null;
+
+function _loadVoice() {
+  if (_cachedVoice) return;
+  const voices = speechSynthesis.getVoices();
+  // 선호 순서: Samantha(Mac/iOS) → Zira/Jenny(Windows) → 아무 en-US
+  _cachedVoice = voices.find(v => /samantha/i.test(v.name))
+    || voices.find(v => /zira|jenny|aria/i.test(v.name))
+    || voices.find(v => v.lang === 'en-US')
+    || voices.find(v => v.lang.startsWith('en'))
+    || null;
+}
+
+speechSynthesis.addEventListener('voiceschanged', _loadVoice);
+
 function cancelTTS() {
-  if (window.responsiveVoice) responsiveVoice.cancel();
+  if (window.speechSynthesis) speechSynthesis.cancel();
 }
 
 function speakWithCallback(word, onEnd) {
   cancelTTS();
-  const spokenWord = PRONOUNCE[word] || word;
-  if (window.responsiveVoice && responsiveVoice.voiceSupport()) {
-    responsiveVoice.speak(spokenWord, 'US English Female', {
-      rate: 0.85, pitch: 1.1, volume: 1,
-      onend: onEnd, onerror: onEnd
-    });
-    return;
-  }
-  // fallback: Web Speech API
   if (!window.speechSynthesis) { onEnd?.(); return; }
-  speechSynthesis.cancel();
+  _loadVoice();
+  const spokenWord = PRONOUNCE[word] || word;
   const u = new SpeechSynthesisUtterance(spokenWord);
-  u.lang = 'en-US'; u.rate = 0.85; u.pitch = 1.1;
-  const v = speechSynthesis.getVoices();
-  const nice = v.find(x => x.lang==='en-US' && /samantha|zira|david/i.test(x.name))
-            || v.find(x => x.lang==='en-US');
-  if (nice) u.voice = nice;
-  u.onend = onEnd; u.onerror = onEnd;
+  u.lang   = 'en-US';
+  u.rate   = 0.82;
+  u.pitch  = 1.1;
+  u.volume = 1;
+  if (_cachedVoice) u.voice = _cachedVoice;
+  u.onend  = () => onEnd?.();
+  u.onerror = () => onEnd?.();
   speechSynthesis.speak(u);
 }
 
+// 🔊 버튼: 수동 재생 → 자동 넘김 없음
 function speakAgain() {
-  cancelAdvance();
+  cancelAdvance();           // 진행 중인 타이머 취소
+  cancelTTS();
+  _loadVoice();
   const animal = DATA[currentDay][currentIdx];
-  speakWithCallback(animal.w, () => {
-    if (!autoOn) return;
-    const list = DATA[currentDay];
-    if (currentIdx < list.length - 1) {
-      startAdvanceRing();
-      advTimer = setTimeout(() => go(1), 2000);
-    }
-  });
+  const spokenWord = PRONOUNCE[animal.w] || animal.w;
+  const u = new SpeechSynthesisUtterance(spokenWord);
+  u.lang = 'en-US'; u.rate = 0.82; u.pitch = 1.1; u.volume = 1;
+  if (_cachedVoice) u.voice = _cachedVoice;
+  speechSynthesis.speak(u);  // onEnd 없음 → 자동 넘김 안 함
 }
 
 // ─── Init ────────────────────────────────────────────────────────
-speechSynthesis.onvoiceschanged = () => {};
+_loadVoice();
 preloadDay(1);
 
 // ─── 배경 대각선 스트립 (필름스트립 방식) ────────────────────────
