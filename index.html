@@ -375,6 +375,8 @@
       text-align: center;
     }
   </style>
+  <!-- ResponsiveVoice TTS: 미국식 여자 목소리 -->
+  <script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE"></script>
 </head>
 <body>
 <!-- 얼음 배경 레이어 -->
@@ -999,6 +1001,7 @@ function togglePause() {
     clearTimeout(advTimer);
     advanceRing.style.display = 'none';
     speechSynthesis.cancel();
+    if (window.responsiveVoice) responsiveVoice.cancel();
   } else {
     // 재개
     if (pausedAfterReveal) {
@@ -1023,6 +1026,7 @@ function cancelTimers() {
   clearInterval(cdInterval);
   countdownNumEl.style.display = 'none';
   speechSynthesis.cancel();
+  if (window.responsiveVoice) responsiveVoice.cancel();
   advanceRing.style.display = 'none';
 }
 
@@ -1034,36 +1038,39 @@ function cancelAdvance() {
 // ─── TTS ─────────────────────────────────────────────────────────
 // 발음 보정 사전 (en-US에서도 틀리기 쉬운 단어들)
 const PRONOUNCE = {
-  'Dove':       'Duv',        // /dʌv/ — 도브가 아닌 "더브"
-  'Sloth':      'Slawth',     // /slɑːθ/ — ㅗ 아닌 ㅓ/ㅏ 중간
-  'Zebra':      'Zeebra',     // 미국식 ZEE-bra
-  'Squirrel':   'Skwirl',     // r 발음 강조
-  'Owl':        'Owwl',       // /aʊl/ 이중모음 강조
-  'Duck':       'Duhk',       // /dʌk/ — 영국식 deck 방지
-  'Horse':      'Horrs',      // 강한 r 발음
-  'Shark':      'Sharrk',     // 강한 r 발음
+  'Dove': 'Duv',  // "Dove"는 TTS가 /doʊv/로 읽는 경우 있어 /dʌv/ 강제
 };
 
 function speakWithCallback(word, onEnd) {
+  const spokenWord = PRONOUNCE[word] || word;
+
+  // ResponsiveVoice 사용 (미국식 여자 목소리)
+  if (window.responsiveVoice) {
+    if (window.speechSynthesis) speechSynthesis.cancel();
+    responsiveVoice.cancel();
+    responsiveVoice.speak(spokenWord, 'US English Female', {
+      rate:    0.85,
+      pitch:   1.1,
+      volume:  1,
+      onend:   onEnd,
+      onerror: onEnd
+    });
+    return;
+  }
+
+  // fallback: Web Speech API
   if (!window.speechSynthesis) { onEnd?.(); return; }
   speechSynthesis.cancel();
-
-  const spokenWord = PRONOUNCE[word] || word;
   const u = new SpeechSynthesisUtterance(spokenWord);
   u.lang  = 'en-US';
   u.rate  = 0.78;
   u.pitch = 1.15;
-
   const voices = speechSynthesis.getVoices();
-  // 미국 영어 목소리 우선 선택 (영국/호주/아일랜드 제외)
   const nice =
-    voices.find(v => v.lang === 'en-US' && /samantha|alex|zira|david|google us/i.test(v.name)) ||
+    voices.find(v => v.lang === 'en-US' && /samantha|alex|zira|david/i.test(v.name)) ||
     voices.find(v => v.lang === 'en-US') ||
-    voices.find(v => v.lang.startsWith('en-US')) ||
-    voices.find(v => v.lang.startsWith('en') && !/karen|moira|tessa|victoria|daniel|serena/i.test(v.name)) ||
     voices.find(v => v.lang.startsWith('en'));
   if (nice) u.voice = nice;
-
   u.onend   = onEnd;
   u.onerror = onEnd;
   speechSynthesis.speak(u);
@@ -1180,6 +1187,7 @@ document.getElementById('startBtn').addEventListener('click', () => {
   u.volume = 0;
   speechSynthesis.speak(u);
   speechSynthesis.cancel();
+  if (window.responsiveVoice) responsiveVoice.cancel();
 
   startOverlay.style.opacity = '0';
   startOverlay.style.pointerEvents = 'none';
