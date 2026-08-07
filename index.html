@@ -592,7 +592,7 @@
   <footer style="text-align:center; padding: 28px 16px 20px; position:relative; z-index:1;">
     <div style="font-family:'Baloo 2',sans-serif; font-size:1.05rem; font-weight:900; color:#2A6FA8; letter-spacing:0.04em;">헬렌잉글리쉬</div>
     <div style="font-size:0.72rem; color:#aaa; margin-top:6px; font-weight:500; letter-spacing:0.02em;">본 강의자료의 무단 복제 및 배포는 금지합니다</div>
-    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.5</div>
+    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.6</div>
   </footer>
 
 <script>
@@ -1160,6 +1160,7 @@ const AUDIO_FILES = {
 
 // ─── Audio playback ───────────────────────────────────────────────
 let _currentAudio = null;
+let _cutTimer = null;
 const _audioCache = {};
 
 function _preloadAudio(word) {
@@ -1172,11 +1173,18 @@ function _preloadAudio(word) {
 }
 
 function _stopAudio() {
+  if (_cutTimer) { clearTimeout(_cutTimer); _cutTimer = null; }
   if (_currentAudio) {
     _currentAudio.pause();
     _currentAudio.src = '';
     _currentAudio = null;
   }
+}
+
+// Estimate spoken duration (sec) to cut trailing TTS noise
+function _estimateDuration(word) {
+  const syllables = (word.toLowerCase().match(/[aeiouy]+/g) || []).length;
+  return Math.max(0.75, syllables * 0.40 + 0.45);
 }
 
 // Returns true if pre-recorded file found and started
@@ -1187,9 +1195,28 @@ function _playFile(word, onEnd) {
   const a = _audioCache[word] || new Audio(url);
   delete _audioCache[word];
   _currentAudio = a;
-  if (onEnd) a.onended = () => { _currentAudio = null; onEnd(); };
-  a.onerror = () => { _currentAudio = null; onEnd?.(); };
-  a.play().catch(() => { _currentAudio = null; onEnd?.(); });
+
+  const dur = _estimateDuration(word);
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    if (_cutTimer) { clearTimeout(_cutTimer); _cutTimer = null; }
+    if (_currentAudio === a) _currentAudio = null;
+    onEnd?.();
+  };
+
+  // Cut playback at estimated word end to remove trailing noise/artifacts
+  a.addEventListener('playing', () => {
+    _cutTimer = setTimeout(() => {
+      if (_currentAudio === a) a.pause();
+      finish();
+    }, dur * 1000);
+  }, { once: true });
+
+  a.onended = finish;
+  a.onerror = finish;
+  a.play().catch(finish);
   return true;
 }
 
