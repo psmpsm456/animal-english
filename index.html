@@ -605,7 +605,7 @@
   <footer style="text-align:center; padding: 28px 16px 20px; position:relative; z-index:1;">
     <div style="font-family:'Baloo 2',sans-serif; font-size:1.05rem; font-weight:900; color:#2A6FA8; letter-spacing:0.04em;">헬렌잉글리쉬</div>
     <div style="font-size:0.72rem; color:#aaa; margin-top:6px; font-weight:500; letter-spacing:0.02em;">본 강의자료의 무단 복제 및 배포는 금지합니다</div>
-    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.11</div>
+    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.12</div>
   </footer>
 
 <script>
@@ -1249,7 +1249,7 @@ function _playFile(word, onEnd) {
   let a;
   if (_isMobile) {
     a = _mobileAudio || new Audio(url);
-    if (a === _mobileAudio) a.src = url;
+    if (a === _mobileAudio) { a.src = url; a.load(); }
   } else {
     const cached = _audioCache[word];
     a = (cached instanceof Audio) ? cached : new Audio(url);
@@ -1339,35 +1339,24 @@ preloadDay(1);
 (function buildBgGrid() {
   const grid = document.getElementById('bgGrid');
   const keys = Object.keys(LOCAL_IMAGES);
-
   const NUM_ROWS = 9;
-  const GAP = 0;
   const W = Math.max(window.innerWidth, screen.width, 390);
   const H = Math.max(window.innerHeight, screen.height, screen.availHeight, 700);
-  const cellH = Math.floor((H - GAP * (NUM_ROWS - 1)) / NUM_ROWS);
-  // 한 방향당 이미지 수 (화면 너비 1.5배 커버 + 여유)
-  const numImgsHalf = Math.ceil((W * 1.6) / (cellH + GAP)) + 3;
+  const rowH = Math.ceil(H / NUM_ROWS) + 2;  // +2px overlap eliminates gaps
+  const stepY = H / NUM_ROWS;
+  const numImgsHalf = Math.ceil((W * 1.8) / rowH) + 4;
 
-  grid.style.cssText = `
-    position:absolute; inset:0;
-    width:100%; height:100%;
-    display:flex; flex-direction:column;
-    gap:${GAP}px;
-    pointer-events:none;
-    overflow:hidden;
-  `;
+  grid.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;';
 
-  // Fisher-Yates 셔플
   const shuffled = [...keys];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
-  let loadedCount = 0;
-  const totalImgs = NUM_ROWS * numImgsHalf * 2;
-  let driftStarted = false;
+  let loadedCount = 0, driftStarted = false;
   const rowData = [];
+  const totalImgs = NUM_ROWS * numImgsHalf * 2;
   const fallbackTimer = setTimeout(startDrift, 4000);
 
   function startDrift() {
@@ -1375,47 +1364,36 @@ preloadDay(1);
     driftStarted = true;
     clearTimeout(fallbackTimer);
     rowData.forEach(({ inner, dir }, idx) => {
-      // 행마다 살짝 다른 속도 (18~30s)
-      const duration = 18 + idx * 2.5;
-      inner.style.animation = `panRow${dir} ${duration.toFixed(1)}s linear infinite`;
+      const dur = 18 + idx * 2.5;
+      inner.style.animation = 'panRow' + dir + ' ' + dur.toFixed(1) + 's linear infinite';
     });
   }
-
-  function onImgLoad() {
-    if (++loadedCount >= totalImgs) setTimeout(startDrift, 400);
-  }
+  function onImgLoad() { if (++loadedCount >= totalImgs) setTimeout(startDrift, 400); }
 
   for (let r = 0; r < NUM_ROWS; r++) {
     const wrap = document.createElement('div');
-    wrap.className = 'grid-row-wrap';
-    wrap.style.animationDelay = `${(r * 0.15).toFixed(2)}s`;
+    const topPx = Math.floor(r * stepY);
+    const delay = (r * 0.15).toFixed(2);
+    wrap.style.cssText = 'position:absolute;top:' + topPx + 'px;left:0;right:0;height:' + rowH + 'px;overflow:hidden;animation:rowFadeIn 0.7s ease-out ' + delay + 's both;';
 
     const inner = document.createElement('div');
     inner.className = 'grid-row-inner';
     const dir = r % 2 === 0 ? 'Right' : 'Left';
-    // Left 행은 시작 위치를 -50%로 맞춰 seamless loop
     if (dir === 'Left') inner.style.transform = 'translateX(-50%)';
 
     const startIdx = (r * Math.ceil(numImgsHalf / 2)) % shuffled.length;
-
     for (let repeat = 0; repeat < 2; repeat++) {
       for (let i = 0; i < numImgsHalf; i++) {
         const key = shuffled[(startIdx + i) % shuffled.length];
         const img = document.createElement('img');
-        img.style.cssText = `
-          height:100%; aspect-ratio:1/1;
-          object-fit:cover; object-position:center;
-          display:block; flex-shrink:0;
-          margin-right:0;
-        `;
-        img.addEventListener('load',  onImgLoad, {once: true});
-        img.addEventListener('error', onImgLoad, {once: true});
+        img.style.cssText = 'height:' + rowH + 'px;width:' + rowH + 'px;object-fit:cover;object-position:center;display:block;flex-shrink:0;';
+        img.addEventListener('load',  onImgLoad, {once:true});
+        img.addEventListener('error', onImgLoad, {once:true});
         img.src = LOCAL_IMAGES[key];
         if (img.complete) { img.removeEventListener('load', onImgLoad); onImgLoad(); }
         inner.appendChild(img);
       }
     }
-
     wrap.appendChild(inner);
     grid.appendChild(wrap);
     rowData.push({ inner, dir });
