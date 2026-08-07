@@ -605,7 +605,7 @@
   <footer style="text-align:center; padding: 28px 16px 20px; position:relative; z-index:1;">
     <div style="font-family:'Baloo 2',sans-serif; font-size:1.05rem; font-weight:900; color:#2A6FA8; letter-spacing:0.04em;">헬렌잉글리쉬</div>
     <div style="font-size:0.72rem; color:#aaa; margin-top:6px; font-weight:500; letter-spacing:0.02em;">본 강의자료의 무단 복제 및 배포는 금지합니다</div>
-    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.13</div>
+    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.14</div>
   </footer>
 
 <script>
@@ -1103,7 +1103,7 @@ const AUDIO_FILES = {
   'Jellyfish':   'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_d6f91da7-68d1-443f-aeaf-ad744715de42.wav',
   'Octopus':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_d6e850e2-2eda-48e4-a10e-bd2a0ab18a6f.wav',
   'Seal':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_74082ff2-92e6-471e-a668-7599e0ade36b.wav',
-  'Lobster':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023459_0ca7fbbb-f0e2-4bee-b1f0-d5546f0960ba.wav',
+  'Lobster':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_084458_92930547-5666-4729-a42c-d8dd4d1222f6.wav',
   'Chimpanzee':  'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023459_7217695f-cc0d-41ce-9522-c15a90d0442e.wav',
   'Jaguar':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023459_3e996ef2-bc60-40f8-ae89-357707b9299f.wav',
   'Leopard':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023459_fb5b0ddf-e398-4919-9de8-6cb2669f3d1f.wav',
@@ -1261,34 +1261,16 @@ function _playFile(word, onEnd) {
     onEnd?.();
   };
 
-  // Schedule cut based on actual file duration: cut 0.9s before file end.
-  // Higgsfield TTS files have ~0.8-1.2s of trailing noise — this removes it.
-  const TRAILING = 0.9;  // seconds before file end to start fade
-  function scheduleCut() {
-    const d = a.duration;
-    if (!isFinite(d) || d <= 0) return;
-    const cutAt = Math.max(0.5, d - TRAILING);
-    const ms = Math.max(0, (cutAt - (a.currentTime || 0)) * 1000);
-    _cutTimer = setTimeout(() => {
-      if (_currentAudio === a) _fadeOut(a, finish);
-    }, ms);
-  }
+  // Cut based on syllable count — tight estimate to trim trailing TTS noise
+  // without cutting mid-word. Formula tuned to Emily voice (Higgsfield seed_audio).
+  const syl = (word.toLowerCase().match(/[aeiouy]+/g) || []).length;
+  const cutAt = Math.max(0.70, syl * 0.36 + 0.34);  // ~0.7s (1syl) … 2.1s (5syl)
 
   a.onplaying = () => {
     a.onplaying = null;
-    if (isFinite(a.duration) && a.duration > 0) {
-      scheduleCut();
-    } else {
-      // Wait for metadata (common on mobile after src change)
-      a.addEventListener('durationchange', function h() {
-        a.removeEventListener('durationchange', h);
-        if (!_cutTimer) scheduleCut();
-      });
-      // Hard fallback at 5s in case metadata never arrives
-      _cutTimer = setTimeout(() => {
-        if (_currentAudio === a) _fadeOut(a, finish);
-      }, 5000);
-    }
+    _cutTimer = setTimeout(() => {
+      if (_currentAudio === a) _fadeOut(a, finish);
+    }, cutAt * 1000);
   };
   a.onended = finish;
   a.onerror = finish;
