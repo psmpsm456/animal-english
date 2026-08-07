@@ -592,7 +592,7 @@
   <footer style="text-align:center; padding: 28px 16px 20px; position:relative; z-index:1;">
     <div style="font-family:'Baloo 2',sans-serif; font-size:1.05rem; font-weight:900; color:#2A6FA8; letter-spacing:0.04em;">헬렌잉글리쉬</div>
     <div style="font-size:0.72rem; color:#aaa; margin-top:6px; font-weight:500; letter-spacing:0.02em;">본 강의자료의 무단 복제 및 배포는 금지합니다</div>
-    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.9</div>
+    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.10</div>
   </footer>
 
 <script>
@@ -1190,13 +1190,35 @@ function _preloadAudio(word) {
   _audioCache[word] = a;
 }
 
+let _fadeInterval = null;
+
 function _stopAudio() {
+  if (_fadeInterval) { clearInterval(_fadeInterval); _fadeInterval = null; }
   if (_cutTimer) { clearTimeout(_cutTimer); _cutTimer = null; }
   if (_currentAudio) {
     _currentAudio.pause();
-    if (!_isMobile) _currentAudio.src = '';  // mobile: keep src intact
+    _currentAudio.volume = 1;
+    if (!_isMobile) _currentAudio.src = '';
     _currentAudio = null;
   }
+}
+
+// 80ms fade-out to eliminate crackle/pop when cutting audio
+function _fadeOut(a, callback) {
+  if (_fadeInterval) { clearInterval(_fadeInterval); _fadeInterval = null; }
+  const steps = 4;
+  let step = 0;
+  _fadeInterval = setInterval(() => {
+    step++;
+    a.volume = Math.max(0, 1 - step / steps);
+    if (step >= steps) {
+      clearInterval(_fadeInterval);
+      _fadeInterval = null;
+      a.pause();
+      a.volume = 1;
+      callback();
+    }
+  }, 20);
 }
 
 // Estimate spoken duration (sec) to cut trailing TTS noise
@@ -1214,7 +1236,7 @@ function _playFile(word, onEnd) {
   let a;
   if (_isMobile) {
     a = _mobileAudio || new Audio(url);
-    if (a === _mobileAudio) a.src = url;  // swap src on shared element
+    if (a === _mobileAudio) a.src = url;
   } else {
     const cached = _audioCache[word];
     a = (cached instanceof Audio) ? cached : new Audio(url);
@@ -1227,18 +1249,17 @@ function _playFile(word, onEnd) {
   const finish = () => {
     if (done) return;
     done = true;
+    if (_fadeInterval) { clearInterval(_fadeInterval); _fadeInterval = null; }
     if (_cutTimer) { clearTimeout(_cutTimer); _cutTimer = null; }
     if (_currentAudio === a) _currentAudio = null;
     onEnd?.();
   };
 
-  // Use property assignment (not addEventListener) to avoid stale listeners
-  // on the shared mobile element
   a.onplaying = () => {
     a.onplaying = null;
     _cutTimer = setTimeout(() => {
-      if (_currentAudio === a) a.pause();
-      finish();
+      if (_currentAudio !== a) return;
+      _fadeOut(a, finish);  // smooth fade instead of hard cut
     }, dur * 1000);
   };
   a.onended = finish;
