@@ -592,7 +592,7 @@
   <footer style="text-align:center; padding: 28px 16px 20px; position:relative; z-index:1;">
     <div style="font-family:'Baloo 2',sans-serif; font-size:1.05rem; font-weight:900; color:#2A6FA8; letter-spacing:0.04em;">헬렌잉글리쉬</div>
     <div style="font-size:0.72rem; color:#aaa; margin-top:6px; font-weight:500; letter-spacing:0.02em;">본 강의자료의 무단 복제 및 배포는 금지합니다</div>
-    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.6</div>
+    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.7</div>
   </footer>
 
 <script>
@@ -1162,14 +1162,35 @@ const AUDIO_FILES = {
 let _currentAudio = null;
 let _cutTimer = null;
 const _audioCache = {};
+const _isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+// iOS/Android: unlock audio on first user interaction
+let _audioUnlocked = false;
+function _unlockAudio() {
+  if (_audioUnlocked) return;
+  _audioUnlocked = true;
+  const silent = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+  silent.play().catch(() => {});
+}
+document.addEventListener('touchstart', _unlockAudio, { once: true, passive: true });
+document.addEventListener('click', _unlockAudio, { once: true });
 
 function _preloadAudio(word) {
   const url = AUDIO_FILES[word];
   if (!url || _audioCache[word]) return;
-  const a = new Audio();
-  a.preload = 'auto';
-  a.src = url;
-  _audioCache[word] = a;
+  if (_isMobile) {
+    // On mobile, use <link prefetch> to warm network cache instead of Audio elements
+    // (iOS suspends Audio elements not actively playing)
+    const link = document.createElement('link');
+    link.rel = 'prefetch'; link.as = 'fetch'; link.href = url;
+    document.head.appendChild(link);
+    _audioCache[word] = url; // store URL only
+  } else {
+    const a = new Audio();
+    a.preload = 'auto';
+    a.src = url;
+    _audioCache[word] = a;
+  }
 }
 
 function _stopAudio() {
@@ -1192,7 +1213,9 @@ function _playFile(word, onEnd) {
   const url = AUDIO_FILES[word];
   if (!url) return false;
   _stopAudio();
-  const a = _audioCache[word] || new Audio(url);
+  // On mobile: always use fresh Audio (iOS suspends cached Audio elements)
+  const cached = _audioCache[word];
+  const a = (!_isMobile && cached instanceof Audio) ? cached : new Audio(url);
   delete _audioCache[word];
   _currentAudio = a;
 
