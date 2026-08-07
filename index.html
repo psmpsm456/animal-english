@@ -605,7 +605,7 @@
   <footer style="text-align:center; padding: 28px 16px 20px; position:relative; z-index:1;">
     <div style="font-family:'Baloo 2',sans-serif; font-size:1.05rem; font-weight:900; color:#2A6FA8; letter-spacing:0.04em;">헬렌잉글리쉬</div>
     <div style="font-size:0.72rem; color:#aaa; margin-top:6px; font-weight:500; letter-spacing:0.02em;">본 강의자료의 무단 복제 및 배포는 금지합니다</div>
-    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.12</div>
+    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.13</div>
   </footer>
 
 <script>
@@ -1216,10 +1216,10 @@ function _stopAudio() {
   }
 }
 
-// 80ms fade-out to eliminate crackle/pop when cutting audio
+// 200ms smooth fade-out to mask trailing noise/crackle
 function _fadeOut(a, callback) {
   if (_fadeInterval) { clearInterval(_fadeInterval); _fadeInterval = null; }
-  const steps = 4;
+  const steps = 8;
   let step = 0;
   _fadeInterval = setInterval(() => {
     step++;
@@ -1231,13 +1231,7 @@ function _fadeOut(a, callback) {
       a.volume = 1;
       callback();
     }
-  }, 20);
-}
-
-// Estimate spoken duration (sec) to cut trailing TTS noise
-function _estimateDuration(word) {
-  const syllables = (word.toLowerCase().match(/[aeiouy]+/g) || []).length;
-  return Math.max(1.8, syllables * 0.65 + 0.75);
+  }, 25); // 8 x 25ms = 200ms
 }
 
 // Returns true if pre-recorded file found and started
@@ -1257,7 +1251,6 @@ function _playFile(word, onEnd) {
   }
   _currentAudio = a;
 
-  const dur = _estimateDuration(word);
   let done = false;
   const finish = () => {
     if (done) return;
@@ -1268,12 +1261,34 @@ function _playFile(word, onEnd) {
     onEnd?.();
   };
 
+  // Schedule cut based on actual file duration: cut 0.9s before file end.
+  // Higgsfield TTS files have ~0.8-1.2s of trailing noise — this removes it.
+  const TRAILING = 0.9;  // seconds before file end to start fade
+  function scheduleCut() {
+    const d = a.duration;
+    if (!isFinite(d) || d <= 0) return;
+    const cutAt = Math.max(0.5, d - TRAILING);
+    const ms = Math.max(0, (cutAt - (a.currentTime || 0)) * 1000);
+    _cutTimer = setTimeout(() => {
+      if (_currentAudio === a) _fadeOut(a, finish);
+    }, ms);
+  }
+
   a.onplaying = () => {
     a.onplaying = null;
-    _cutTimer = setTimeout(() => {
-      if (_currentAudio !== a) return;
-      _fadeOut(a, finish);  // smooth fade instead of hard cut
-    }, dur * 1000);
+    if (isFinite(a.duration) && a.duration > 0) {
+      scheduleCut();
+    } else {
+      // Wait for metadata (common on mobile after src change)
+      a.addEventListener('durationchange', function h() {
+        a.removeEventListener('durationchange', h);
+        if (!_cutTimer) scheduleCut();
+      });
+      // Hard fallback at 5s in case metadata never arrives
+      _cutTimer = setTimeout(() => {
+        if (_currentAudio === a) _fadeOut(a, finish);
+      }, 5000);
+    }
   };
   a.onended = finish;
   a.onerror = finish;
