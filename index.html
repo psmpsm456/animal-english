@@ -592,7 +592,7 @@
   <footer style="text-align:center; padding: 28px 16px 20px; position:relative; z-index:1;">
     <div style="font-family:'Baloo 2',sans-serif; font-size:1.05rem; font-weight:900; color:#2A6FA8; letter-spacing:0.04em;">헬렌잉글리쉬</div>
     <div style="font-size:0.72rem; color:#aaa; margin-top:6px; font-weight:500; letter-spacing:0.02em;">본 강의자료의 무단 복제 및 배포는 금지합니다</div>
-    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.4</div>
+    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.5</div>
   </footer>
 
 <script>
@@ -823,7 +823,9 @@ function getImageUrl(word) {
 }
 
 function preloadDay(day) {
-  // Images already embedded
+  // Preload audio files for the day so playback starts instantly
+  const animals = DATA[day] || [];
+  animals.forEach(a => _preloadAudio(a.w));
 }
 
 // ─── State ──────────────────────────────────────────────────────
@@ -1054,26 +1056,26 @@ function cancelAdvance() {
 // ─── TTS ─────────────────────────────────────────────────────────
 // ─── Pre-recorded audio (Higgsfield Emily voice) ─────────────────
 const AUDIO_FILES = {
-  'Cat':         'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023041_2c4354e0-1c7f-4d35-8adc-8d69e342e9ac.wav',
+  'Cat':         'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_031429_d20d6e35-4357-4c96-b05f-a55ddad44ab7.wav',
   'Dog':         'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_5600f829-aa8c-454e-9c7b-15f07128df02.wav',
   'Fish':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_d8fc09ad-a0f9-4eeb-ba37-450f848a4086.wav',
   'Bird':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_62cb33a7-a528-4679-a53c-9174db80f2e0.wav',
-  'Rabbit':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_882bd048-1b91-493e-b9bf-cf4367c2ef33.wav',
+  'Rabbit':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_031429_d0b5d265-a585-4137-a782-ac8e55777c18.wav',
   'Cow':         'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_1b36d007-eb04-46ca-8b54-fdb9c1988773.wav',
   'Pig':         'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_c7539089-36d3-4eb5-93a5-696d5b728913.wav',
   'Duck':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_c424a024-7181-46ea-98d7-f002a1bdea82.wav',
   'Horse':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_7761d8d7-07d2-4c12-8d7f-3250cb130675.wav',
   'Frog':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_da5cb65c-1fe9-478f-b457-42a3497d7abf.wav',
-  'Lion':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_e295906a-3aca-46d2-9560-95fec3305e06.wav',
+  'Lion':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_031429_3261e4b4-9a6f-4cc9-ad4a-038e4ecf6e6e.wav',
   'Tiger':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_2d714109-78cd-489c-8351-c881891c93cc.wav',
   'Bear':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_52398dca-046f-4140-ad12-7e0800ea5026.wav',
   'Elephant':    'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_7e6dd978-e296-4117-882a-3e8418af6fc1.wav',
   'Monkey':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_b106de2b-5cd5-49be-ba85-6f875419e169.wav',
   'Snake':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_0d8aa0e5-b2b9-496f-a96a-87a68da4c8d2.wav',
-  'Turtle':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_d985fd86-bc2a-4e16-aaf1-7b7a71fc168d.wav',
-  'Chicken':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_275b9223-afe1-4a40-af96-6b465840677b.wav',
+  'Turtle':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_031429_38b3a0fb-4ca4-48be-9328-8679c76f1f23.wav',
+  'Chicken':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_031429_204512e8-ecfa-4140-949a-fb16cbc1f8a1.wav',
   'Sheep':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_4bec91e8-56cc-4ee8-b2ee-321d1a8414c6.wav',
-  'Goat':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_b03bc867-77b1-46ac-baf3-86e4bf2bb85d.wav',
+  'Goat':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_031429_0adf0aac-f0ca-4734-9348-8a3edf9694f1.wav',
   'Fox':         'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_826f78cc-3572-4617-b91e-4ef7cf749c79.wav',
   'Wolf':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_3af3fd15-1f29-45fe-806e-f8a2fdc608eb.wav',
   'Deer':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_ff6ede98-4e14-4dc0-abd0-1ce93e1fa5d2.wav',
@@ -1158,6 +1160,16 @@ const AUDIO_FILES = {
 
 // ─── Audio playback ───────────────────────────────────────────────
 let _currentAudio = null;
+const _audioCache = {};
+
+function _preloadAudio(word) {
+  const url = AUDIO_FILES[word];
+  if (!url || _audioCache[word]) return;
+  const a = new Audio();
+  a.preload = 'auto';
+  a.src = url;
+  _audioCache[word] = a;
+}
 
 function _stopAudio() {
   if (_currentAudio) {
@@ -1172,7 +1184,8 @@ function _playFile(word, onEnd) {
   const url = AUDIO_FILES[word];
   if (!url) return false;
   _stopAudio();
-  const a = new Audio(url);
+  const a = _audioCache[word] || new Audio(url);
+  delete _audioCache[word];
   _currentAudio = a;
   if (onEnd) a.onended = () => { _currentAudio = null; onEnd(); };
   a.onerror = () => { _currentAudio = null; onEnd?.(); };
