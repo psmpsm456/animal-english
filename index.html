@@ -592,7 +592,7 @@
   <footer style="text-align:center; padding: 28px 16px 20px; position:relative; z-index:1;">
     <div style="font-family:'Baloo 2',sans-serif; font-size:1.05rem; font-weight:900; color:#2A6FA8; letter-spacing:0.04em;">헬렌잉글리쉬</div>
     <div style="font-size:0.72rem; color:#aaa; margin-top:6px; font-weight:500; letter-spacing:0.02em;">본 강의자료의 무단 복제 및 배포는 금지합니다</div>
-    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.3</div>
+    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.4</div>
   </footer>
 
 <script>
@@ -1052,23 +1052,140 @@ function cancelAdvance() {
 }
 
 // ─── TTS ─────────────────────────────────────────────────────────
-// 발음 보정 사전
-const PRONOUNCE = {
-  'Gecko':  'GEK oh',
-  'Wolf':   'Wulf',
-  'Crane':  'Krayn',
-  'Owl':    'Owwl',
-  'Dove':   'Duv',
-  'Iguana': 'ih GWAH nuh',
+// ─── Pre-recorded audio (Higgsfield Emily voice) ─────────────────
+const AUDIO_FILES = {
+  'Cat':         'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023041_2c4354e0-1c7f-4d35-8adc-8d69e342e9ac.wav',
+  'Dog':         'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_5600f829-aa8c-454e-9c7b-15f07128df02.wav',
+  'Fish':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_d8fc09ad-a0f9-4eeb-ba37-450f848a4086.wav',
+  'Bird':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_62cb33a7-a528-4679-a53c-9174db80f2e0.wav',
+  'Rabbit':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_882bd048-1b91-493e-b9bf-cf4367c2ef33.wav',
+  'Cow':         'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_1b36d007-eb04-46ca-8b54-fdb9c1988773.wav',
+  'Pig':         'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_c7539089-36d3-4eb5-93a5-696d5b728913.wav',
+  'Duck':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_c424a024-7181-46ea-98d7-f002a1bdea82.wav',
+  'Horse':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_7761d8d7-07d2-4c12-8d7f-3250cb130675.wav',
+  'Frog':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_da5cb65c-1fe9-478f-b457-42a3497d7abf.wav',
+  'Lion':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_e295906a-3aca-46d2-9560-95fec3305e06.wav',
+  'Tiger':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023040_2d714109-78cd-489c-8351-c881891c93cc.wav',
+  'Bear':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_52398dca-046f-4140-ad12-7e0800ea5026.wav',
+  'Elephant':    'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_7e6dd978-e296-4117-882a-3e8418af6fc1.wav',
+  'Monkey':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_b106de2b-5cd5-49be-ba85-6f875419e169.wav',
+  'Snake':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_0d8aa0e5-b2b9-496f-a96a-87a68da4c8d2.wav',
+  'Turtle':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_d985fd86-bc2a-4e16-aaf1-7b7a71fc168d.wav',
+  'Chicken':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_275b9223-afe1-4a40-af96-6b465840677b.wav',
+  'Sheep':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_4bec91e8-56cc-4ee8-b2ee-321d1a8414c6.wav',
+  'Goat':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_b03bc867-77b1-46ac-baf3-86e4bf2bb85d.wav',
+  'Fox':         'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_826f78cc-3572-4617-b91e-4ef7cf749c79.wav',
+  'Wolf':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_3af3fd15-1f29-45fe-806e-f8a2fdc608eb.wav',
+  'Deer':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_ff6ede98-4e14-4dc0-abd0-1ce93e1fa5d2.wav',
+  'Owl':         'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023302_994dd282-cbea-4319-a4fa-576f3d750e0a.wav',
+  'Eagle':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_16fc1d5c-f2c3-4e7e-b14c-c264fa7690b8.wav',
+  'Penguin':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_c29e8810-9f6a-42ac-945e-6df27c5d62b0.wav',
+  'Dolphin':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_361a55e1-2e20-48e1-a3b7-85a69a530cce.wav',
+  'Whale':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_425e6c9e-301d-4f22-bf23-dfb20f0dc416.wav',
+  'Shark':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_1ad3c341-deac-4f65-b0d3-6f1fffb630a3.wav',
+  'Crab':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_a3227e93-0337-43e7-a165-cf1d4de42f93.wav',
+  'Snail':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_a91fad8a-3d59-49dd-8ff3-5b603531f0b9.wav',
+  'Jellyfish':   'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_d6f91da7-68d1-443f-aeaf-ad744715de42.wav',
+  'Octopus':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_d6e850e2-2eda-48e4-a10e-bd2a0ab18a6f.wav',
+  'Seal':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023411_74082ff2-92e6-471e-a668-7599e0ade36b.wav',
+  'Lobster':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023459_0ca7fbbb-f0e2-4bee-b1f0-d5546f0960ba.wav',
+  'Chimpanzee':  'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023459_7217695f-cc0d-41ce-9522-c15a90d0442e.wav',
+  'Jaguar':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023459_3e996ef2-bc60-40f8-ae89-357707b9299f.wav',
+  'Leopard':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023459_fb5b0ddf-e398-4919-9de8-6cb2669f3d1f.wav',
+  'Hyena':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023459_d1cd43b1-b2f9-4969-9daf-c25c6a89a261.wav',
+  'Mole':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023459_6b68d0e2-ea3e-4a44-8e9c-26c186baabd2.wav',
+  'Giraffe':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023459_dbe6d1ed-f12a-4ad4-abad-e6e7302fa87a.wav',
+  'Zebra':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023459_5956475e-d781-450b-948a-975dd192ac53.wav',
+  'Hippo':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023459_d5c35159-ff53-40be-970d-0483a99233d0.wav',
+  'Rhino':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023459_6d8df73b-e1a7-491f-b529-cbd6313d44cd.wav',
+  'Gorilla':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023459_e5003056-c4d6-474c-93ab-1b40c7568548.wav',
+  'Parrot':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023459_acc93a99-fdd1-4316-b35a-2ca7830c797b.wav',
+  'Flamingo':    'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023547_ffdaa29a-e33d-4177-b56d-9b3c38f916c8.wav',
+  'Crocodile':   'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023547_2a0ce0e6-6d56-4339-a566-c613cd146698.wav',
+  'Panda':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023547_f3a11499-e394-4ab1-a887-a951e7c92086.wav',
+  'Koala':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023547_4469a669-ca27-4794-b456-00dff31f0506.wav',
+  'Kangaroo':    'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023547_8325c4c7-a314-454e-8abd-a29cc14417a4.wav',
+  'Camel':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023547_cc29a304-0111-4758-b661-c1f57ac7711d.wav',
+  'Peacock':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023547_d1317b22-f1c7-4cd4-991d-242df3162390.wav',
+  'Bat':         'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023547_b7ffe2fc-6aac-499a-8899-70952e2b2deb.wav',
+  'Hedgehog':    'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023547_fb243d78-bea6-4e43-8619-80867bbfb2e2.wav',
+  'Squirrel':    'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023547_5852c3f4-af99-418c-b418-ca3ae6b89393.wav',
+  'Raccoon':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023547_af47da95-c813-4519-aa9c-883d5e151121.wav',
+  'Skunk':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023547_8a684774-84f7-4ea7-8266-78202d791096.wav',
+  'Cheetah':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023633_ecb38b65-847f-4d90-8072-4c7e76860d09.wav',
+  'Ostrich':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023633_379007d2-8b2f-4666-b2ba-ecd38658bd9b.wav',
+  'Mouse':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_e1017fe0-3b99-445b-a6b6-4dd6355cfcb3.wav',
+  'Hamster':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_931ad4a5-2100-4efe-a817-bb46eff496ca.wav',
+  'Guinea Pig':  'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_6626ddec-0baa-41aa-b5ac-765049520d09.wav',
+  'Beaver':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_e4362002-0c72-44dd-b023-f594bc720e34.wav',
+  'Otter':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_19182e2c-93a9-4554-85ab-e6ff41e05566.wav',
+  'Sloth':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_9eee2349-ed38-45d2-9d2c-17c22f907239.wav',
+  'Llama':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_2c02a246-fe77-4096-9c1d-2441f4512f9f.wav',
+  'Alpaca':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_8a34af12-de09-4140-a0a3-b72a0ae45dca.wav',
+  'Capybara':    'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_facca232-1091-4354-8f44-b6900b23b22e.wav',
+  'Donkey':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_2c1e9e61-2921-4eeb-82b3-788bd97f2475.wav',
+  'Polar Bear':  'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_5da968cd-72d8-4376-83c1-40144829d812.wav',
+  'Swan':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_86d78fc0-a387-4683-b0df-68831b7ba2e5.wav',
+  'Dove':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023633_80ec81bd-df1f-453d-a8f4-3e4fd0d93c15.wav',
+  'Turkey':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023633_f995181e-3ad3-4016-8d87-6fd93639c9a3.wav',
+  'Puffin':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023633_349ee589-a068-4585-ab7b-aae29be436a2.wav',
+  'Chick':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023633_01dce342-5b8a-400c-b0c9-34b4eb24e551.wav',
+  'Cuckoo':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023633_b771a4b0-fc09-48e2-ad2e-64f1142dad2a.wav',
+  'Orca':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023633_f14a9219-509e-4739-8677-a65c88d9e653.wav',
+  'Magpie':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023633_f4ffbd31-7664-4169-a6ce-5d99bc4a7f82.wav',
+  'Sparrow':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023632_69978654-edf2-4e37-bbce-9ae09b7d52e1.wav',
+  'Clownfish':   'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023633_c79c3011-3b31-40a4-b97a-bf0020e4b450.wav',
+  'Pufferfish':  'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023633_b4fadcba-de5a-498a-8c60-e7fd91f9f17b.wav',
+  'Shrimp':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023717_9e759d34-27aa-4031-b019-ab1efea310bf.wav',
+  'Squid':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023717_42cf2034-ee00-46c7-94cd-b0d8f8fb3609.wav',
+  'Gecko':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023717_19ba3583-510e-4301-a53c-5730cf4bb23f.wav',
+  'Starfish':    'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023717_55594ae5-aaa5-4deb-923d-5c8840ae4291.wav',
+  'Walrus':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023717_d7525d67-318a-4d4e-8f19-c21dd6473668.wav',
+  'Platypus':    'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023717_1eacde2b-4d95-44bc-9064-ac7c0fb071e7.wav',
+  'Lynx':        'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023717_3e0096eb-1cff-4ad7-8c99-66e2dcaa0651.wav',
+  'Seahorse':    'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023717_fc4d46c5-7bbd-4955-85f9-19431a4db1d0.wav',
+  'Chameleon':   'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023717_5723b63d-ce66-44f6-b934-e2ac95e677b1.wav',
+  'Pelican':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023717_eecad0ca-9658-4132-ad64-996e48c35316.wav',
+  'Meerkat':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023717_11895f23-bb14-4916-8c8a-d36497ce3ed2.wav',
+  'Hummingbird': 'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023717_8ffdb624-e350-4147-bbdd-c786701894c2.wav',
+  'Arctic Fox':  'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023750_7af98f03-43a8-418f-971c-3031ae9b76ae.wav',
+  'Goldfish':    'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023750_131929ea-d151-4ab2-baf2-43f828706054.wav',
+  'Crane':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023750_be405879-c96a-473c-b4e8-a7218b8934eb.wav',
+  'Reindeer':    'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023751_185d691b-2949-45cc-8aa4-643c24d864eb.wav',
+  'Woodpecker':  'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023751_395f32b8-48ee-44d1-87e8-fd02a8e2f359.wav',
+  'Sea Lion':    'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023751_88ee7264-3f00-4600-8365-4f7124034923.wav',
 };
 
-// ─── TTS: Web Speech API ──────────────────────────────────────────
+// ─── Audio playback ───────────────────────────────────────────────
+let _currentAudio = null;
+
+function _stopAudio() {
+  if (_currentAudio) {
+    _currentAudio.pause();
+    _currentAudio.src = '';
+    _currentAudio = null;
+  }
+}
+
+// Returns true if pre-recorded file found and started
+function _playFile(word, onEnd) {
+  const url = AUDIO_FILES[word];
+  if (!url) return false;
+  _stopAudio();
+  const a = new Audio(url);
+  _currentAudio = a;
+  if (onEnd) a.onended = () => { _currentAudio = null; onEnd(); };
+  a.onerror = () => { _currentAudio = null; onEnd?.(); };
+  a.play().catch(() => { _currentAudio = null; onEnd?.(); });
+  return true;
+}
+
+// ─── TTS: Web Speech API (fallback) ──────────────────────────────
 let _cachedVoice = null;
 
 function _loadVoice() {
   if (_cachedVoice) return;
   const voices = speechSynthesis.getVoices();
-  // 선호 순서: Samantha(Mac/iOS) → Zira/Jenny(Windows) → 아무 en-US
   _cachedVoice = voices.find(v => /samantha/i.test(v.name))
     || voices.find(v => /zira|jenny|aria/i.test(v.name))
     || voices.find(v => v.lang === 'en-US')
@@ -1079,19 +1196,19 @@ function _loadVoice() {
 speechSynthesis.addEventListener('voiceschanged', _loadVoice);
 
 function cancelTTS() {
+  _stopAudio();
   if (window.speechSynthesis) speechSynthesis.cancel();
 }
 
 function speakWithCallback(word, onEnd) {
   cancelTTS();
+  // Try pre-recorded audio first
+  if (_playFile(word, onEnd)) return;
+  // Fallback: Web Speech API
   if (!window.speechSynthesis) { onEnd?.(); return; }
   _loadVoice();
-  const spokenWord = PRONOUNCE[word] || word;
-  const u = new SpeechSynthesisUtterance(spokenWord);
-  u.lang   = 'en-US';
-  u.rate   = 0.82;
-  u.pitch  = 1.1;
-  u.volume = 1;
+  const u = new SpeechSynthesisUtterance(word);
+  u.lang = 'en-US'; u.rate = 0.82; u.pitch = 1.1; u.volume = 1;
   if (_cachedVoice) u.voice = _cachedVoice;
   u.onend  = () => onEnd?.();
   u.onerror = () => onEnd?.();
@@ -1100,15 +1217,17 @@ function speakWithCallback(word, onEnd) {
 
 // 🔊 버튼: 수동 재생 → 자동 넘김 없음
 function speakAgain() {
-  cancelAdvance();           // 진행 중인 타이머 취소
+  cancelAdvance();
   cancelTTS();
-  _loadVoice();
   const animal = DATA[currentDay][currentIdx];
-  const spokenWord = PRONOUNCE[animal.w] || animal.w;
-  const u = new SpeechSynthesisUtterance(spokenWord);
+  // Try pre-recorded audio (no onEnd → no auto-advance)
+  if (_playFile(animal.w, null)) return;
+  // Fallback: Web Speech API
+  _loadVoice();
+  const u = new SpeechSynthesisUtterance(animal.w);
   u.lang = 'en-US'; u.rate = 0.82; u.pitch = 1.1; u.volume = 1;
   if (_cachedVoice) u.voice = _cachedVoice;
-  speechSynthesis.speak(u);  // onEnd 없음 → 자동 넘김 안 함
+  speechSynthesis.speak(u);
 }
 
 // ─── Init ────────────────────────────────────────────────────────
