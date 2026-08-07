@@ -592,7 +592,7 @@
   <footer style="text-align:center; padding: 28px 16px 20px; position:relative; z-index:1;">
     <div style="font-family:'Baloo 2',sans-serif; font-size:1.05rem; font-weight:900; color:#2A6FA8; letter-spacing:0.04em;">헬렌잉글리쉬</div>
     <div style="font-size:0.72rem; color:#aaa; margin-top:6px; font-weight:500; letter-spacing:0.02em;">본 강의자료의 무단 복제 및 배포는 금지합니다</div>
-    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.8</div>
+    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.9</div>
   </footer>
 
 <script>
@@ -1162,47 +1162,44 @@ const AUDIO_FILES = {
 const _isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 let _currentAudio = null;
 let _cutTimer = null;
-const _audioCache = {};         // word → Audio element
-const _unlockedWords = new Set(); // words whose Audio was play()'d in a user gesture
+const _audioCache = {};   // desktop: per-word preloaded elements
 
-// Called during user gesture (selectDay click → preloadDay → here).
-// iOS blocks audio.play() from setTimeout callbacks, but allows it if the
-// same Audio element was previously play()'d during a real user gesture.
-// So we pre-activate every word's Audio element while the gesture is live.
+// Mobile: ONE shared Audio element, unlocked once on first gesture.
+// iOS restricts audio.play() outside user gesture per-element — once an
+// element is play()'d during a gesture it stays unlocked permanently.
+// We reuse this single element (changing src each word) so we never need
+// another gesture.
+let _mobileAudio = null;
+function _initMobileAudio() {
+  if (!_isMobile || _mobileAudio) return;
+  _mobileAudio = new Audio(
+    'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA'
+  );
+  _mobileAudio.play().catch(() => {});  // unlock during gesture
+}
+document.addEventListener('touchstart', _initMobileAudio, { once: true, passive: true });
+document.addEventListener('click',      _initMobileAudio, { once: true });
+
 function _preloadAudio(word) {
+  if (_isMobile) return;  // mobile uses single shared element
   const url = AUDIO_FILES[word];
-  if (!url) return;
-  if (_isMobile) {
-    if (_unlockedWords.has(word)) return;
-    const a = new Audio(url);
-    a.volume = 0;
-    a.play()
-      .then(() => {
-        _unlockedWords.add(word);
-        if (_currentAudio !== a) { a.pause(); a.currentTime = 0; }
-        a.volume = 1;
-        _audioCache[word] = a;   // store for reuse in _playFile
-      })
-      .catch(() => { /* gesture expired or load failed */ });
-  } else {
-    if (_audioCache[word]) return;
-    const a = new Audio();
-    a.preload = 'auto';
-    a.src = url;
-    _audioCache[word] = a;
-  }
+  if (!url || _audioCache[word]) return;
+  const a = new Audio();
+  a.preload = 'auto';
+  a.src = url;
+  _audioCache[word] = a;
 }
 
 function _stopAudio() {
   if (_cutTimer) { clearTimeout(_cutTimer); _cutTimer = null; }
   if (_currentAudio) {
     _currentAudio.pause();
-    if (!_isMobile) _currentAudio.src = ''; // mobile: keep src so element stays unlocked
+    if (!_isMobile) _currentAudio.src = '';  // mobile: keep src intact
     _currentAudio = null;
   }
 }
 
-// Estimate spoken word duration (sec) — used to cut trailing TTS noise
+// Estimate spoken duration (sec) to cut trailing TTS noise
 function _estimateDuration(word) {
   const syllables = (word.toLowerCase().match(/[aeiouy]+/g) || []).length;
   return Math.max(1.2, syllables * 0.50 + 0.60);
@@ -1215,15 +1212,13 @@ function _playFile(word, onEnd) {
   _stopAudio();
 
   let a;
-  const cached = _audioCache[word];
-  if (_isMobile && _unlockedWords.has(word) && cached instanceof Audio) {
-    // Reuse gesture-unlocked element — iOS allows play() on it without new gesture
-    a = cached;
-    a.currentTime = 0;
-    a.volume = 1;
+  if (_isMobile) {
+    a = _mobileAudio || new Audio(url);
+    if (a === _mobileAudio) a.src = url;  // swap src on shared element
   } else {
+    const cached = _audioCache[word];
     a = (cached instanceof Audio) ? cached : new Audio(url);
-    if (!_isMobile) delete _audioCache[word];
+    delete _audioCache[word];
   }
   _currentAudio = a;
 
@@ -1237,14 +1232,15 @@ function _playFile(word, onEnd) {
     onEnd?.();
   };
 
-  // Cut at estimated word end to remove trailing noise/artifacts
-  a.addEventListener('playing', () => {
+  // Use property assignment (not addEventListener) to avoid stale listeners
+  // on the shared mobile element
+  a.onplaying = () => {
+    a.onplaying = null;
     _cutTimer = setTimeout(() => {
       if (_currentAudio === a) a.pause();
       finish();
     }, dur * 1000);
-  }, { once: true });
-
+  };
   a.onended = finish;
   a.onerror = finish;
   a.play().catch(finish);
