@@ -365,6 +365,10 @@
     }
 
     /* ── Done banner ── */
+    @keyframes slideUpCenter {
+      from { transform: translate(-50%, 100vh); opacity: 0; }
+      to   { transform: translate(-50%, 50%);  opacity: 1; }
+    }
     .done-banner {
       display: none;
       flex-direction: column;
@@ -373,12 +377,21 @@
       padding: 18px 28px;
       background: #fff;
       border-radius: 24px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-      margin-top: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
       font-weight: 800;
       color: #111;
       font-size: 1.25rem;
       text-align: center;
+      /* overlay positioning */
+      position: fixed;
+      bottom: 50%;
+      left: 50%;
+      transform: translate(-50%, 50%);
+      z-index: 200;
+      width: min(88vw, 380px);
+    }
+    .done-banner.visible {
+      animation: slideUpCenter 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
   </style>
   <!-- Google Analytics -->
@@ -592,7 +605,7 @@
   <footer style="text-align:center; padding: 28px 16px 20px; position:relative; z-index:1;">
     <div style="font-family:'Baloo 2',sans-serif; font-size:1.05rem; font-weight:900; color:#2A6FA8; letter-spacing:0.04em;">헬렌잉글리쉬</div>
     <div style="font-size:0.72rem; color:#aaa; margin-top:6px; font-weight:500; letter-spacing:0.02em;">본 강의자료의 무단 복제 및 배포는 금지합니다</div>
-    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.10</div>
+    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.11</div>
   </footer>
 
 <script>
@@ -877,7 +890,7 @@ function selectDay(day) {
   document.querySelectorAll('.day-btn').forEach((b, i) => {
     b.classList.toggle('active', i + 1 === day);
   });
-  doneBanner.style.display = 'none';
+  doneBanner.style.display = 'none'; doneBanner.classList.remove('visible');
   preloadDay(day);
   showCard();
 }
@@ -985,7 +998,7 @@ function revealWord(animal) {
       startAdvanceRing();
       advTimer = setTimeout(() => go(1), 2000);
     } else {
-      doneBanner.style.display = 'flex';
+      doneBanner.style.display = 'flex'; void doneBanner.offsetWidth; doneBanner.classList.add('visible');
     }
   });
 }
@@ -1224,7 +1237,7 @@ function _fadeOut(a, callback) {
 // Estimate spoken duration (sec) to cut trailing TTS noise
 function _estimateDuration(word) {
   const syllables = (word.toLowerCase().match(/[aeiouy]+/g) || []).length;
-  return Math.max(1.2, syllables * 0.50 + 0.60);
+  return Math.max(1.8, syllables * 0.65 + 0.75);
 }
 
 // Returns true if pre-recorded file found and started
@@ -1328,7 +1341,7 @@ preloadDay(1);
   const keys = Object.keys(LOCAL_IMAGES);
 
   const NUM_ROWS = 9;
-  const GAP = 3;
+  const GAP = 0;
   const W = Math.max(window.innerWidth, screen.width, 390);
   const H = Math.max(window.innerHeight, screen.height, screen.availHeight, 700);
   const cellH = Math.floor((H - GAP * (NUM_ROWS - 1)) / NUM_ROWS);
@@ -1393,7 +1406,7 @@ preloadDay(1);
           height:100%; aspect-ratio:1/1;
           object-fit:cover; object-position:center;
           display:block; flex-shrink:0;
-          margin-right:${GAP}px;
+          margin-right:0;
         `;
         img.addEventListener('load',  onImgLoad, {once: true});
         img.addEventListener('error', onImgLoad, {once: true});
