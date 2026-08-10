@@ -605,7 +605,7 @@
   <footer style="text-align:center; padding: 28px 16px 20px; position:relative; z-index:1;">
     <div style="font-family:'Baloo 2',sans-serif; font-size:1.05rem; font-weight:900; color:#2A6FA8; letter-spacing:0.04em;">헬렌잉글리쉬</div>
     <div style="font-size:0.72rem; color:#aaa; margin-top:6px; font-weight:500; letter-spacing:0.02em;">본 강의자료의 무단 복제 및 배포는 금지합니다</div>
-    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.16</div>
+    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.17</div>
   </footer>
 
 <script>
@@ -1133,7 +1133,7 @@ const AUDIO_FILES = {
   'Hamster':     'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_931ad4a5-2100-4efe-a817-bb46eff496ca.wav',
   'Guinea Pig':  'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_6626ddec-0baa-41aa-b5ac-765049520d09.wav',
   'Beaver':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_e4362002-0c72-44dd-b023-f594bc720e34.wav',
-  'Otter':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260810_005357_82911e5d-7aa7-43b5-a881-d0093e82c0d1.wav',
+  'Otter':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260810_005641_34e35654-4c4d-4926-ad19-63e6a7c417ca.wav',
   'Sloth':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_9eee2349-ed38-45d2-9d2c-17c22f907239.wav',
   'Llama':       'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_2c02a246-fe77-4096-9c1d-2441f4512f9f.wav',
   'Alpaca':      'https://d8j0ntlcm91z4.cloudfront.net/user_3HZBfgOpSlExMJELjhmnVK1YMTx/hf_20260807_023116_8a34af12-de09-4140-a0a3-b72a0ae45dca.wav',
@@ -1266,8 +1266,13 @@ function _playFile(word, onEnd) {
   const syl = (word.toLowerCase().match(/[aeiouy]+/g) || []).length;
   const cutAt = Math.max(0.70, syl * 0.36 + 0.34);  // ~0.7s (1syl) … 2.1s (5syl)
 
+  // Per-word leading-artifact trim (seconds to skip at start)
+  const START_SKIP = { 'Otter': 0.12 };
+  const skipSec = START_SKIP[word] || 0;
+
   a.onplaying = () => {
     a.onplaying = null;
+    if (skipSec > 0) a.currentTime = skipSec;
     _cutTimer = setTimeout(() => {
       if (_currentAudio === a) _fadeOut(a, finish);
     }, cutAt * 1000);
