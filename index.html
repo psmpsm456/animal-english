@@ -1427,6 +1427,11 @@ function goHome() {
 // ─── Start Overlay ────────────────────────────────────────────────
 const startOverlay = document.getElementById('startOverlay');
 document.getElementById('startBtn').addEventListener('click', () => {
+  // iOS: unlock speechSynthesis synchronously within gesture context
+  if (window.speechSynthesis) {
+    speechSynthesis.cancel();
+    speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+  }
   startOverlay.style.transition = 'opacity 0.3s';
   startOverlay.style.opacity = '0';
   startOverlay.style.pointerEvents = 'none';
