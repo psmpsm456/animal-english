@@ -1309,8 +1309,14 @@ function speakWithCallback(word, onEnd) {
   const u = new SpeechSynthesisUtterance(word);
   u.lang = 'en-US'; u.rate = 0.82; u.pitch = 1.1; u.volume = 1;
   if (_cachedVoice) u.voice = _cachedVoice;
-  u.onend  = () => onEnd?.();
-  u.onerror = () => onEnd?.();
+  let _done = false;
+  const finish = () => { if (_done) return; _done = true; onEnd?.(); };
+  // iOS: onend sometimes doesn't fire — fallback timer
+  const syl = (word.toLowerCase().match(/[aeiouy]+/g) || []).length;
+  const fallbackMs = Math.max(2000, syl * 500 + 1200);
+  const _fallback = setTimeout(finish, fallbackMs);
+  u.onend  = () => { clearTimeout(_fallback); finish(); };
+  u.onerror = () => { clearTimeout(_fallback); finish(); };
   speechSynthesis.speak(u);
 }
 
