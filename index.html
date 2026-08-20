@@ -605,7 +605,7 @@
   <footer style="text-align:center; padding: 28px 16px 20px; position:relative; z-index:1;">
     <div style="font-family:'Baloo 2',sans-serif; font-size:1.05rem; font-weight:900; color:#2A6FA8; letter-spacing:0.04em;">헬렌잉글리쉬</div>
     <div style="font-size:0.72rem; color:#aaa; margin-top:6px; font-weight:500; letter-spacing:0.02em;">본 강의자료의 무단 복제 및 배포는 금지합니다</div>
-    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.17</div>
+    <div style="font-size:0.62rem; color:#ccc; margin-top:4px;">v2.18</div>
   </footer>
 
 <script>
@@ -1299,15 +1299,11 @@ function _loadVoice() {
 speechSynthesis.addEventListener('voiceschanged', _loadVoice);
 
 function cancelTTS() {
-  _stopAudio();
   if (window.speechSynthesis) speechSynthesis.cancel();
 }
 
 function speakWithCallback(word, onEnd) {
   cancelTTS();
-  // Try pre-recorded audio first
-  if (_playFile(word, onEnd)) return;
-  // Fallback: Web Speech API
   if (!window.speechSynthesis) { onEnd?.(); return; }
   _loadVoice();
   const u = new SpeechSynthesisUtterance(word);
@@ -1323,9 +1319,6 @@ function speakAgain() {
   cancelAdvance();
   cancelTTS();
   const animal = DATA[currentDay][currentIdx];
-  // Try pre-recorded audio (no onEnd → no auto-advance)
-  if (_playFile(animal.w, null)) return;
-  // Fallback: Web Speech API
   _loadVoice();
   const u = new SpeechSynthesisUtterance(animal.w);
   u.lang = 'en-US'; u.rate = 0.82; u.pitch = 1.1; u.volume = 1;
