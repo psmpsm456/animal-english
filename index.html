@@ -1344,7 +1344,9 @@ preloadDay(1);
 (function buildBgGrid() {
   const grid = document.getElementById('bgGrid');
   const keys = Object.keys(LOCAL_IMAGES);
-  const NUM_ROWS = 9;
+  const _ua = navigator.userAgent;
+  const _isWebView = /Instagram|FBAN|FBAV|MicroMessenger|Line|kakaotalk/i.test(_ua);
+  const NUM_ROWS = _isWebView ? 3 : 9;
   const W = Math.max(window.innerWidth, screen.width, 390);
   const H = Math.max(window.innerHeight, screen.height, screen.availHeight, 700);
   const rowH = Math.ceil(H / NUM_ROWS) + 2;  // +2px overlap eliminates gaps
@@ -1430,8 +1432,11 @@ function goHome() {
 
 // ─── Start Overlay ────────────────────────────────────────────────
 const startOverlay = document.getElementById('startOverlay');
-document.getElementById('startBtn').addEventListener('click', () => {
-  // iOS: unlock speechSynthesis synchronously within gesture context
+function _doStart(e) {
+  if (e && e.type === 'touchstart') e.preventDefault();
+  if (window._startDone) return;
+  window._startDone = true;
+  // iOS/Android: unlock speechSynthesis synchronously within gesture context
   if (window.speechSynthesis) {
     speechSynthesis.cancel();
     speechSynthesis.speak(new SpeechSynthesisUtterance(''));
@@ -1441,7 +1446,10 @@ document.getElementById('startBtn').addEventListener('click', () => {
   startOverlay.style.pointerEvents = 'none';
   setTimeout(() => { startOverlay.style.display = 'none'; }, 300);
   showCard();
-});
+}
+const _startBtnEl = document.getElementById('startBtn');
+_startBtnEl.addEventListener('touchstart', _doStart, { passive: false });
+_startBtnEl.addEventListener('click', _doStart);
 </script>
   </div><!-- /z-index wrapper -->
 </body>
